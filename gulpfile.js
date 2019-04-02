@@ -13,7 +13,10 @@ var watchedBrowserify = watchify(browserify({
     debug: true,
     entries: ['src/app.ts'],
     cache: {},
-    packageCache: {}
+    packageCache: {},
+    transform: [
+        ['glslify', { global: true }]
+    ]
 }).plugin(tsify));
 
 function bundle() {
