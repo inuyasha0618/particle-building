@@ -6,7 +6,7 @@ import * as building from './3dModules/building';
 const OrbitControls = require('three-orbitcontrols')
 const scene: THREE.Scene = new THREE.Scene();
 
-const camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
 // camera.position.setZ(200);
 camera.position.set(0, 50, 500);
 camera.lookAt(new THREE.Vector3(0, 50, 0));
@@ -38,12 +38,13 @@ scene.add( spot );
 
 let looper = null;
 function init() {
-    building.init(scene);
+    building.init(scene, renderer);
     console.log('init done');
     looper = new RenderLooper(render).start();
 }
 
 function render() {
+    renderer.setRenderTarget(null);
     renderer.render(scene, camera);
 }
 

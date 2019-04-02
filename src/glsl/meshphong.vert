@@ -1,5 +1,5 @@
 #define PHONG
-
+uniform sampler2D texturePosition;
 varying vec3 vViewPosition;
 
 #ifndef FLAT_SHADED
@@ -34,12 +34,13 @@ void main() {
 	#include <defaultnormal_vertex>
 
 #ifndef FLAT_SHADED // Normal computed with derivatives when FLAT_SHADED
-
 	vNormal = normalize( transformedNormal );
 
 #endif
 
 	#include <begin_vertex>
+	transformed = texture2D(texturePosition, position.xy).xyz;
+
 	#include <morphtarget_vertex>
 	#include <skinning_vertex>
 	#include <displacementmap_vertex>
@@ -55,5 +56,5 @@ void main() {
 	#include <fog_vertex>
 
 	// gl_PointSize = mix(2600.0, 800.0, smoothstep(EPS, 2.0, offsetDistance)) / length( mvPosition.xyz );
-	gl_PointSize = 100.0 / length( mvPosition.xyz );
+	gl_PointSize = 500.0 / length( mvPosition.xyz );
 }

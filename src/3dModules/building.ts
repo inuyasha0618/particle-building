@@ -9,7 +9,7 @@ var OBJLoader = require('three-obj-loader');
 OBJLoader(THREE);
 const loader = new THREE.OBJLoader();
 let mesh = null;
-function init(scene) {
+function init(scene, renderer) {
     const { WIDTH, HEIGHT } = settings;
     const PARTICLE_AMOUNTS = WIDTH * HEIGHT;
     const vertices: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 3);
@@ -50,10 +50,19 @@ function init(scene) {
             // uvs[2 * pointIndex] = uv.x;
             // uvs[2 * pointIndex + 1] = uv.y;
         }
+        const position = new Float32Array(PARTICLE_AMOUNTS * 3);
+
+        for (let i = 0; i < PARTICLE_AMOUNTS; i++) {
+            position[3 * i] = (i % WIDTH) / WIDTH;
+            position[3 * i + 1] = ~~(i / WIDTH) / HEIGHT;
+            position[3 * i + 2] = Math.random();
+        }
+
         console.timeEnd('process');
         const pointGeometry = new THREE.BufferGeometry();
         pointGeometry.center();
-        pointGeometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3, false));
+        // pointGeometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3, false));
+        pointGeometry.addAttribute('position', new THREE.BufferAttribute(position, 3, false));
         pointGeometry.addAttribute('normal', new THREE.BufferAttribute(normals, 3, false));
         // pointGeometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2, false));
         // mesh = new THREE.Points(pointGeometry, new THREE.PointsMaterial({ color: 0x888888, size: 0.1 }))
@@ -67,6 +76,7 @@ function init(scene) {
         });
 
         var uniforms = THREE.UniformsUtils.merge( [THREE.ShaderLib.phong.uniforms] );
+        uniforms.texturePosition = { value: undefined };
         newPointMaterial.uniforms = uniforms;
         newPointMaterial.type = 'ShaderMaterial';
         newPointMaterial.vertexShader = glsl.file('../glsl/meshphong.vert');
@@ -75,7 +85,6 @@ function init(scene) {
         console.log('newPointMaterial.vertexShader', newPointMaterial.vertexShader);
 
         mesh = new THREE.Points(pointGeometry, newPointMaterial);
-        scene.add(mesh);
         // scene.add(new THREE.Mesh(totalBufferGeometry, new THREE.MeshPhongMaterial({
         //     color: new THREE.Color().setHex(0x777777),
         //     specular: new THREE.Color().setHex(0x222222),
@@ -83,12 +92,10 @@ function init(scene) {
         //     reflectivity: 0.5,
         //     blending: THREE.NoBlending,
         // })));
+        offScreenFbo.init(vertices, renderer);
+        mesh.material.uniforms.texturePosition.value = offScreenFbo.defaultPosRenderTarget.texture;
+        scene.add(mesh);
     });
-
-
-    offScreenFbo.init(vertices);
-    console.log('building init');
-
 }
 
 export { init, mesh };
