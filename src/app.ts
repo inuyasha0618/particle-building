@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import { Vector2, Vector3 } from 'three';
 import { BufferAttribute } from 'three';
 import RenderLooper from 'render-looper';
-import * as building from './3dModules/building';
+// import * as building from './3dModules/building';
+import OffScreenFbo from './3dModules/offScreenFbo2';
+import Building from './3dModules/building2';
 import GlobalState from './globalState';
 
 
@@ -45,9 +47,12 @@ let looper = null;
 const ray: THREE.Ray = new THREE.Ray();
 init();
 
+let building: Building = null;
+
 function init() {
     registerEvents();
-    building.init(scene, renderer);
+    const offScreenFbo: OffScreenFbo = new OffScreenFbo(renderer);
+    building = new Building(scene, offScreenFbo);
     console.log('init done');
     looper = new RenderLooper(render).start();
 }

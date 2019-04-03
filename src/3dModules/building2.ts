@@ -25,14 +25,13 @@ export default class Bulding {
         const uvs: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 2);
 
         let totalBufferGeometry: THREE.BufferGeometry = null;
-        loader.load('../../models/o.obj', function(object) {
+        loader.load('../../models/o.obj', (object) => {
             totalBufferGeometry = BufferGeometryUtils.mergeBufferGeometries(object.children.map(child => child.geometry), false);
             const originalPositions = totalBufferGeometry.attributes.position.array;
             const originalNormals = totalBufferGeometry.attributes.normal.array;
             // const originalUvs = totalBufferGeometry.attributes.uv.array;
             const originalPtsCnts = totalBufferGeometry.attributes.position.count;
             const remainder = PARTICLE_AMOUNTS - originalPtsCnts;
-            console.log(totalBufferGeometry);
             const result = GeometryUtils.randomPointsInBufferGeometry(totalBufferGeometry, remainder)
             let pointIndex = originalPtsCnts;
 
