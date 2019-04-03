@@ -1,0 +1,97 @@
+import {
+    ClampToEdgeWrapping,
+    NearestFilter,
+    Scene,
+    Mesh,
+    Camera,
+    WebGLRenderTarget,
+    ShaderMaterial,
+    WebGLRenderer,
+    RGBFormat,
+    FloatType,
+    PlaneBufferGeometry,
+    Vector2,
+    DataTexture
+} from 'three';
+import settings from '../settings';
+const glsl = require('glslify');
+export default class OffScreenFbo {
+
+    // 场景基础元素
+    private offScreenScene: Scene;
+    private camera: Camera;
+    private renderer: WebGLRenderer;
+    private mesh: Mesh;
+    
+    // render targets:
+    defaultPosRenderTarget: WebGLRenderTarget;
+    private lastFramePosRenderTarget: WebGLRenderTarget;
+    currentFramePosRenderTarget: WebGLRenderTarget;
+    private lastFrameVelocityRenderTarget: WebGLRenderTarget;
+    currentFrameVelocityRenderTarget: WebGLRenderTarget;
+
+    // shader materials:
+    private copyShader: ShaderMaterial;
+
+    constructor(renderer: WebGLRenderer) {
+        const { WIDTH, HEIGHT } = settings;
+        this.defaultPosRenderTarget = new WebGLRenderTarget(WIDTH, HEIGHT, {
+            wrapS: ClampToEdgeWrapping,
+            wrapT: ClampToEdgeWrapping,
+            minFilter: NearestFilter,
+            magFilter: NearestFilter,
+            format: RGBFormat,
+            type: FloatType,
+            depthBuffer: false,
+            stencilBuffer: false
+        });
+
+        this.lastFramePosRenderTarget = this.defaultPosRenderTarget.clone();
+        this.currentFramePosRenderTarget = this.defaultPosRenderTarget.clone();
+        this.lastFrameVelocityRenderTarget = this.defaultPosRenderTarget.clone();
+        this.currentFrameVelocityRenderTarget = this.defaultPosRenderTarget.clone();
+
+        this.copyShader = new ShaderMaterial({
+            vertexShader: glsl.file('../glsl/fbo.vert'),
+            fragmentShader: glsl.file('../glsl/fboThrough.frag'),
+            uniforms: {
+                resolution: { value: new Vector2(WIDTH, HEIGHT) },
+                inputTex: { value: undefined }
+            }
+        })
+
+        this.camera = new Camera();
+        this.renderer = renderer;
+        this.offScreenScene = new Scene();
+        this.mesh = new Mesh(new PlaneBufferGeometry(2, 2), this.copyShader);
+        this.offScreenScene.add(this.mesh);
+    }
+
+    initDefaultPositions(defaultPositions: Float32Array) {
+        const defaultPosTexture = new DataTexture(
+            defaultPositions,
+            settings.WIDTH,
+            settings.HEIGHT,
+            RGBFormat,
+            FloatType
+        )
+        defaultPosTexture.wrapS = ClampToEdgeWrapping;
+        defaultPosTexture.wrapT = ClampToEdgeWrapping;
+        defaultPosTexture.minFilter = NearestFilter;
+        defaultPosTexture.magFilter = NearestFilter;
+        defaultPosTexture.needsUpdate = true;
+        defaultPosTexture.flipY = false;
+    
+        this.copy2RenderTarget(defaultPosTexture, this.defaultPosRenderTarget);
+        this.copy2RenderTarget(defaultPosTexture, this.lastFramePosRenderTarget);
+        this.copy2RenderTarget(defaultPosTexture, this.currentFramePosRenderTarget);
+    }
+
+    private copy2RenderTarget(input, output) {
+        this.mesh.material = this.copyShader;
+        this.mesh.material.uniforms.inputTex.value = input;
+        this.renderer.setRenderTarget(output);
+        this.renderer.render(this.offScreenScene, this.camera);
+        this.renderer.setRenderTarget(null);
+    }
+}
