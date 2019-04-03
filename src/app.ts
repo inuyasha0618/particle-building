@@ -22,27 +22,43 @@ class MainScene {
     private camera: PerspectiveCamera;
     private globalState: GlobalState;
     private ray: Ray;
+    private building: Building;
 
     constructor() {
-        this.renderer = new WebGLRenderer({ antialias: true });
-        this.renderer.setPixelRatio( window.devicePixelRatio );
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(this.renderer.domElement);
-        const { left, top, width, height } = this.renderer.domElement.getBoundingClientRect();
-        this.globalState = new GlobalState(left, top, width, height);
-
+        this.renderer = this.setRenderer();
+        this.globalState = this.initializeGlobalState();
         this.scene = new Scene();
-
-        const offScreenFbo: OffScreenFbo = new OffScreenFbo(this.renderer);
-        const building = new Building(this.scene, offScreenFbo);
-
+        this.setBuilding();
         this.setLights();
         this.setCamera();
+        this.ray = new Ray();
+        this.bind2this();
+        this.registerEvents();
+    }
+
+    setRenderer(): WebGLRenderer {
+        const renderer = new WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        return renderer;
+    }
+
+    initializeGlobalState(): GlobalState {
+        const { left, top, width, height } = this.renderer.domElement.getBoundingClientRect();
+        const globalState: GlobalState = new GlobalState(left, top, width, height);
+        return globalState;
+    }
+
+    setBuilding() {
+        const offScreenFbo: OffScreenFbo = new OffScreenFbo(this.renderer);
+        this.building = new Building(offScreenFbo);
+        this.scene.add(this.building.mesh);
+    }
+
+    bind2this() {
         this.renderFrame = this.renderFrame.bind(this);
         this.onMouseMove = this.onMouseMove.bind(this);
-
-        this.ray = new Ray();
-        this.registerEvents();
     }
 
     start() {

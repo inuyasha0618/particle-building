@@ -14,9 +14,9 @@ OBJLoader(THREE);
 const loader = new THREE.OBJLoader();
 export default class Bulding {
     private offSceenFbo: OffScreenFbo;
-    private mesh: Mesh;
+    mesh: Mesh;
 
-    constructor(scene: Scene, offSceenFbo: OffScreenFbo ) {
+    constructor(offSceenFbo: OffScreenFbo ) {
         this.offSceenFbo = offSceenFbo;
         const { WIDTH, HEIGHT } = settings;
         const PARTICLE_AMOUNTS = WIDTH * HEIGHT;
@@ -25,6 +25,25 @@ export default class Bulding {
         const uvs: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 2);
 
         let totalBufferGeometry: THREE.BufferGeometry = null;
+        const pointGeometry = new THREE.BufferGeometry();
+
+        let newPointMaterial = new THREE.MeshPhongMaterial({
+            color: new THREE.Color().setHex(0x777777),
+            specular: new THREE.Color().setHex(0x222222),
+            shininess: 12,
+            reflectivity: 0.5,
+            blending: THREE.NoBlending
+        });
+
+        var uniforms = THREE.UniformsUtils.merge( [THREE.ShaderLib.phong.uniforms] );
+        uniforms.texturePosition = { value: undefined };
+        newPointMaterial.uniforms = uniforms;
+        newPointMaterial.type = 'ShaderMaterial';
+        newPointMaterial.vertexShader = glsl.file('../glsl/meshphong.vert');
+        newPointMaterial.fragmentShader = glsl.file('../glsl/meshphong.frag');
+
+        this.mesh = new THREE.Points(pointGeometry, newPointMaterial);
+
         loader.load('../../models/o.obj', (object) => {
             totalBufferGeometry = BufferGeometryUtils.mergeBufferGeometries(object.children.map(child => child.geometry), false);
             const originalPositions = totalBufferGeometry.attributes.position.array;
@@ -59,30 +78,16 @@ export default class Bulding {
                 position[3 * i + 2] = Math.random();
             }
 
-            const pointGeometry = new THREE.BufferGeometry();
-            pointGeometry.center();
             // pointGeometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3, false));
             pointGeometry.addAttribute('position', new THREE.BufferAttribute(position, 3, false));
             pointGeometry.addAttribute('normal', new THREE.BufferAttribute(normals, 3, false));
+
+            (<THREE.BufferGeometry>this.mesh.geometry).addAttribute('position', new THREE.BufferAttribute(position, 3, false));
+            (<THREE.BufferGeometry>this.mesh.geometry).addAttribute('normal', new THREE.BufferAttribute(normals, 3, false));
             // pointGeometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2, false));
             // mesh = new THREE.Points(pointGeometry, new THREE.PointsMaterial({ color: 0x888888, size: 0.1 }))
 
-            let newPointMaterial = new THREE.MeshPhongMaterial({
-                color: new THREE.Color().setHex(0x777777),
-                specular: new THREE.Color().setHex(0x222222),
-                shininess: 12,
-                reflectivity: 0.5,
-                blending: THREE.NoBlending
-            });
 
-            var uniforms = THREE.UniformsUtils.merge( [THREE.ShaderLib.phong.uniforms] );
-            uniforms.texturePosition = { value: undefined };
-            newPointMaterial.uniforms = uniforms;
-            newPointMaterial.type = 'ShaderMaterial';
-            newPointMaterial.vertexShader = glsl.file('../glsl/meshphong.vert');
-            newPointMaterial.fragmentShader = glsl.file('../glsl/meshphong.frag');
-
-            this.mesh = new THREE.Points(pointGeometry, newPointMaterial);
             // scene.add(new THREE.Mesh(totalBufferGeometry, new THREE.MeshPhongMaterial({
             //     color: new THREE.Color().setHex(0x777777),
             //     specular: new THREE.Color().setHex(0x222222),
@@ -92,7 +97,7 @@ export default class Bulding {
             // })));
             offSceenFbo.initDefaultPositions(vertices);
             this.mesh.material.uniforms.texturePosition.value = offSceenFbo.defaultPosRenderTarget.texture;
-            scene.add(this.mesh);
+            // scene.add(this.mesh);
         });
     }
 }
