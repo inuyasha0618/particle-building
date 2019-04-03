@@ -36,7 +36,11 @@ class MainScene {
         this.registerEvents();
     }
 
-    setRenderer(): WebGLRenderer {
+    public start() {
+        this.loop();
+    }
+
+    private setRenderer(): WebGLRenderer {
         const renderer = new WebGLRenderer({ antialias: true });
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -44,28 +48,24 @@ class MainScene {
         return renderer;
     }
 
-    initializeGlobalState(): GlobalState {
+    private initializeGlobalState(): GlobalState {
         const { left, top, width, height } = this.renderer.domElement.getBoundingClientRect();
         const globalState: GlobalState = new GlobalState(left, top, width, height);
         return globalState;
     }
 
-    setBuilding() {
+    private setBuilding() {
         const offScreenFbo: OffScreenFbo = new OffScreenFbo(this.renderer);
         this.building = new Building(offScreenFbo);
         this.scene.add(this.building.mesh);
     }
 
-    bind2this() {
+    private bind2this() {
         this.renderFrame = this.renderFrame.bind(this);
         this.onMouseMove = this.onMouseMove.bind(this);
     }
 
-    start() {
-        this.loop();
-    }
-
-    updateSpherePos() {
+    private updateSpherePos() {
         const currentMousePos2D: Vector2 = this.globalState.getMousePos2D();
         const ray: Ray = this.ray;
         ray.origin.setFromMatrixPosition(this.camera.matrixWorld);
@@ -75,11 +75,11 @@ class MainScene {
         this.globalState.setSpherePos3D(ray.origin);
     }
 
-    registerEvents() {
+    private registerEvents() {
         this.renderer.domElement.addEventListener('mousemove', this.onMouseMove, false);
     }
 
-    onMouseMove(e: MouseEvent) {
+    private onMouseMove(e: MouseEvent) {
         const { pageX, pageY } = e;
         const globalState = this.globalState;
         globalState.setMousePos2D(
