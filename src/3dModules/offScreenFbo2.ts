@@ -11,10 +11,13 @@ import {
     FloatType,
     PlaneBufferGeometry,
     Vector2,
-    DataTexture
+    DataTexture,
+    Vector3
 } from 'three';
 import settings from '../settings';
 const glsl = require('glslify');
+import GlobalState from '../globalState';
+
 export default class OffScreenFbo {
 
     // 场景基础元素
@@ -32,6 +35,8 @@ export default class OffScreenFbo {
 
     // shader materials:
     private copyShader: ShaderMaterial;
+    private velocityShader: ShaderMaterial;
+    private positionShader: ShaderMaterial;
 
     constructor(renderer: WebGLRenderer) {
         this.initRenderTargets();
@@ -41,6 +46,47 @@ export default class OffScreenFbo {
         this.offScreenScene = new Scene();
         this.mesh = new Mesh(new PlaneBufferGeometry(2, 2), this.copyShader);
         this.offScreenScene.add(this.mesh);
+    }
+
+    public update(globalState: GlobalState) {
+        this.updateVelocity(globalState);
+        this.updatePosition(globalState);
+    }
+
+    private updateVelocity(globalState: GlobalState) {
+        const spherePos: Vector3 = globalState.getSpherePos3D();
+        const sphereVelocity: Vector3 = globalState.getSephereVelocity();
+        this.mesh.material = this.velocityShader;
+        this.swapRenderTarget(this.lastFrameVelocityRenderTarget, this.currentFrameVelocityRenderTarget);
+
+        this.velocityShader.uniforms.lastFrameVelocity.value = this.lastFrameVelocityRenderTarget.texture;
+        this.velocityShader.uniforms.defaultPos.value = this.defaultPosRenderTarget.texture;
+        this.velocityShader.uniforms.currentPos.value = this.currentFramePosRenderTarget.texture;
+        this.velocityShader.uniforms.sphere3dPos.value = spherePos;
+        this.velocityShader.uniforms.sphereVelocity.value = sphereVelocity;
+
+        this.renderer.setRenderTarget(this.currentFrameVelocityRenderTarget);
+        this.renderer.render(this.offScreenScene, this.camera);
+        this.renderer.setRenderTarget(null);
+    }
+
+    private updatePosition(globalState: GlobalState) {
+        this.swapRenderTarget(this.lastFramePosRenderTarget, this.currentFramePosRenderTarget);
+        this.mesh.material = this.positionShader;
+
+        this.positionShader.uniforms.lastFramePos.value = this.lastFramePosRenderTarget.texture;
+        this.positionShader.uniforms.defaultPos.value = this.defaultPosRenderTarget.texture;
+        this.positionShader.uniforms.velocity.value = this.currentFrameVelocityRenderTarget.texture;
+
+        this.renderer.setRenderTarget(this.currentFramePosRenderTarget);
+        this.renderer.render(this.offScreenScene, this.camera);
+        this.renderer.setRenderTarget(null);
+    }
+
+    private swapRenderTarget(lastRenderTarget: WebGLRenderTarget, currentRenderTarget: WebGLRenderTarget) {
+        let tmp: WebGLRenderTarget = lastRenderTarget;
+        lastRenderTarget = currentRenderTarget;
+        currentRenderTarget = tmp;
     }
 
     public initDefaultPositions(defaultPositions: Float32Array) {
@@ -91,7 +137,33 @@ export default class OffScreenFbo {
                 resolution: { value: new Vector2(WIDTH, HEIGHT) },
                 inputTex: { value: undefined }
             }
-        })
+        });
+
+        this.velocityShader = new ShaderMaterial({
+            vertexShader: glsl.file('../glsl/fbo.vert'),
+            fragmentShader: glsl.file('../glsl/fboVelocity.frag'),
+            uniforms: {
+                resolution: { value: new Vector2(WIDTH, HEIGHT) },
+                lastFrameVelocity: { value: undefined },
+                defaultPos: { value: undefined },
+                currentPos: { value: undefined },
+                sphere3dPos: { value: undefined},
+                sphereVelocity: { value: undefined },
+                gravity: { value: 1.0 },
+                friction: { value: 0.1 }
+            }
+        });
+
+        this.positionShader = new ShaderMaterial({
+            vertexShader: glsl.file('../glsl/fbo.vert'),
+            fragmentShader: glsl.file('../glsl/fboPosition.frag'),
+            uniforms: {
+                resolution: { value: new Vector2(WIDTH, HEIGHT) },
+                lastFramePos: { value: undefined },
+                defaultPos: { value: undefined },
+                velocity: { value: undefined }
+            }
+        });
     }
 
     private copy2RenderTarget(input, output) {

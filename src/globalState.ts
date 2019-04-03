@@ -10,8 +10,10 @@ interface CvsInfo {
 export default class GlobalState {
     private mousePos2D: Vector2 = new Vector2(0.0, 0.0);
     private spherePos3D: Vector3 = new Vector3(0.0, 0.0, 0.0);
+    private lastFrameSpherePos3D: Vector3 = new Vector3(0.0, 0.0, 0.0);
     private isPhysicActive: boolean = false;
     readonly sphereRadius: number = 5.0;
+    private velocity: Vector3 = new Vector3(0.0, 0.0, 0.0);
     canvasInfo: CvsInfo = { left: 0.0, top: 0.0, width: 0.0, height: 0.0 };
 
     constructor(left: number, top: number, width: number, height: number) {
@@ -26,10 +28,19 @@ export default class GlobalState {
     getMousePos2D(): Vector2 {
         return this.mousePos2D;
     }
+    private updateLastFrameSpherePos3D() {
+        this.lastFrameSpherePos3D.copy(this.spherePos3D);
+    }
 
-    public setSpherePos3D(newPos3D: Vector3) {
+    public updateSpherePos3D(newPos3D: Vector3) {
+        this.updateLastFrameSpherePos3D();
         this.spherePos3D.copy(newPos3D);
         return this;
+    }
+
+    public getSephereVelocity(): Vector3 {
+        this.velocity.subVectors(this.spherePos3D, this.lastFrameSpherePos3D);
+        return this.velocity; 
     }
 
     public getSpherePos3D(): Vector3 {

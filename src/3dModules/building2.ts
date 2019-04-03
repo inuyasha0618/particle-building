@@ -91,7 +91,7 @@ export default class Bulding {
             // pointGeometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2, false));
 
             this.offSceenFbo.initDefaultPositions(vertices);
-            this.mesh.material.uniforms.texturePosition.value = this.offSceenFbo.defaultPosRenderTarget.texture;
+            this.mesh.material.uniforms.texturePosition.value = this.offSceenFbo.currentFramePosRenderTarget.texture;
         });
     }
 }

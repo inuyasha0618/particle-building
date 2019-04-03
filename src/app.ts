@@ -7,6 +7,14 @@ import {
     AmbientLight,
     SpotLight,
     Ray,
+    Mesh,
+    SphereBufferGeometry,
+    MeshPhongMaterial,
+    Color,
+    NoBlending,
+    AdditiveBlending,
+    BackSide,
+    FrontSide,
 } from 'three';
 const OrbitControls = require('three-orbitcontrols')
 import RenderLooper from 'render-looper';
@@ -23,12 +31,15 @@ class MainScene {
     private globalState: GlobalState;
     private ray: Ray;
     private building: Building;
+    private offScreenFbo: OffScreenFbo;
+    private sphere: Mesh;
 
     constructor() {
         this.renderer = this.setRenderer();
         this.globalState = this.initializeGlobalState();
         this.scene = new Scene();
         this.setBuilding();
+        this.setSphere();
         this.setLights();
         this.setCamera();
         this.ray = new Ray();
@@ -55,9 +66,36 @@ class MainScene {
     }
 
     private setBuilding() {
-        const offScreenFbo: OffScreenFbo = new OffScreenFbo(this.renderer);
-        this.building = new Building(offScreenFbo);
+        this.offScreenFbo = new OffScreenFbo(this.renderer);
+        this.building = new Building(this.offScreenFbo);
         this.scene.add(this.building.mesh);
+    }
+
+    private setSphere() {
+        const geometry: SphereBufferGeometry = new SphereBufferGeometry(25, 60, 60);
+        const backMaterial: MeshPhongMaterial = new MeshPhongMaterial({
+            side: BackSide,
+            color: new Color().setHex(0x777777),
+            specular: new Color().setHex(0x222222),
+            shininess: 12,
+            reflectivity: 0.5,
+            blending: AdditiveBlending,
+            opacity: 0.3,
+        });
+
+        const frontMaterial: MeshPhongMaterial = new MeshPhongMaterial({
+            side: FrontSide,
+            color: new Color().setHex(0x777777),
+            specular: new Color().setHex(0x222222),
+            shininess: 12,
+            reflectivity: 0.5,
+            blending: AdditiveBlending,
+            opacity: 0.3,
+        });
+        
+        this.sphere = new Mesh(geometry, backMaterial);
+        this.sphere.add(new Mesh(geometry, frontMaterial));
+        this.scene.add(this.sphere);
     }
 
     private bind2this() {
@@ -71,8 +109,11 @@ class MainScene {
         ray.origin.setFromMatrixPosition(this.camera.matrixWorld);
         ray.direction.set(currentMousePos2D.x, currentMousePos2D.y, 0.5).unproject(this.camera).sub(ray.origin).normalize();
         const distance: number = ray.origin.length() / Math.cos(Math.PI - ray.direction.angleTo(ray.origin))
-        ray.origin.add(new Vector3().copy(ray.direction).multiplyScalar(distance));
-        this.globalState.setSpherePos3D(ray.origin);
+        // ray.origin.add(new Vector3().copy(ray.direction).multiplyScalar(distance));
+        ray.origin.add(ray.direction.multiplyScalar(distance));
+        this.globalState.updateSpherePos3D(ray.origin);
+
+        this.sphere.position.copy(this.globalState.getSpherePos3D());
     }
 
     private registerEvents() {
@@ -80,11 +121,11 @@ class MainScene {
     }
 
     private onMouseMove(e: MouseEvent) {
-        const { pageX, pageY } = e;
+        // const { pageX, pageY } = e;
         const globalState = this.globalState;
         globalState.setMousePos2D(
-            2.0 * (pageX - globalState.canvasInfo.left) / globalState.canvasInfo.width - 1.0,
-            2.0 * (globalState.canvasInfo.height - (pageY - globalState.canvasInfo.top)) / globalState.canvasInfo.height - 1.0
+            2.0 * (e.pageX - globalState.canvasInfo.left) / globalState.canvasInfo.width - 1.0,
+            2.0 * (globalState.canvasInfo.height - (e.pageY - globalState.canvasInfo.top)) / globalState.canvasInfo.height - 1.0
         );
     }
 
@@ -122,6 +163,7 @@ class MainScene {
 
     private renderFrame() {
         this.updateSpherePos();
+        this.offScreenFbo.update(this.globalState);
         this.renderer.render(this.scene, this.camera);
     }
 }
