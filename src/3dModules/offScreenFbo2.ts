@@ -24,42 +24,18 @@ export default class OffScreenFbo {
     private mesh: Mesh;
     
     // render targets:
-    defaultPosRenderTarget: WebGLRenderTarget;
+    public defaultPosRenderTarget: WebGLRenderTarget;
     private lastFramePosRenderTarget: WebGLRenderTarget;
-    currentFramePosRenderTarget: WebGLRenderTarget;
+    public currentFramePosRenderTarget: WebGLRenderTarget;
     private lastFrameVelocityRenderTarget: WebGLRenderTarget;
-    currentFrameVelocityRenderTarget: WebGLRenderTarget;
+    public currentFrameVelocityRenderTarget: WebGLRenderTarget;
 
     // shader materials:
     private copyShader: ShaderMaterial;
 
     constructor(renderer: WebGLRenderer) {
-        const { WIDTH, HEIGHT } = settings;
-        this.defaultPosRenderTarget = new WebGLRenderTarget(WIDTH, HEIGHT, {
-            wrapS: ClampToEdgeWrapping,
-            wrapT: ClampToEdgeWrapping,
-            minFilter: NearestFilter,
-            magFilter: NearestFilter,
-            format: RGBFormat,
-            type: FloatType,
-            depthBuffer: false,
-            stencilBuffer: false
-        });
-
-        this.lastFramePosRenderTarget = this.defaultPosRenderTarget.clone();
-        this.currentFramePosRenderTarget = this.defaultPosRenderTarget.clone();
-        this.lastFrameVelocityRenderTarget = this.defaultPosRenderTarget.clone();
-        this.currentFrameVelocityRenderTarget = this.defaultPosRenderTarget.clone();
-
-        this.copyShader = new ShaderMaterial({
-            vertexShader: glsl.file('../glsl/fbo.vert'),
-            fragmentShader: glsl.file('../glsl/fboThrough.frag'),
-            uniforms: {
-                resolution: { value: new Vector2(WIDTH, HEIGHT) },
-                inputTex: { value: undefined }
-            }
-        })
-
+        this.initRenderTargets();
+        this.initShaderMaterials();
         this.camera = new Camera();
         this.renderer = renderer;
         this.offScreenScene = new Scene();
@@ -67,7 +43,7 @@ export default class OffScreenFbo {
         this.offScreenScene.add(this.mesh);
     }
 
-    initDefaultPositions(defaultPositions: Float32Array) {
+    public initDefaultPositions(defaultPositions: Float32Array) {
         const defaultPosTexture = new DataTexture(
             defaultPositions,
             settings.WIDTH,
@@ -85,6 +61,37 @@ export default class OffScreenFbo {
         this.copy2RenderTarget(defaultPosTexture, this.defaultPosRenderTarget);
         this.copy2RenderTarget(defaultPosTexture, this.lastFramePosRenderTarget);
         this.copy2RenderTarget(defaultPosTexture, this.currentFramePosRenderTarget);
+    }
+
+    private initRenderTargets() {
+        const { WIDTH, HEIGHT } = settings;
+        this.defaultPosRenderTarget = new WebGLRenderTarget(WIDTH, HEIGHT, {
+            wrapS: ClampToEdgeWrapping,
+            wrapT: ClampToEdgeWrapping,
+            minFilter: NearestFilter,
+            magFilter: NearestFilter,
+            format: RGBFormat,
+            type: FloatType,
+            depthBuffer: false,
+            stencilBuffer: false
+        });
+
+        this.lastFramePosRenderTarget = this.defaultPosRenderTarget.clone();
+        this.currentFramePosRenderTarget = this.defaultPosRenderTarget.clone();
+        this.lastFrameVelocityRenderTarget = this.defaultPosRenderTarget.clone();
+        this.currentFrameVelocityRenderTarget = this.defaultPosRenderTarget.clone();
+    }
+
+    private initShaderMaterials() {
+        const { WIDTH, HEIGHT } = settings;
+        this.copyShader = new ShaderMaterial({
+            vertexShader: glsl.file('../glsl/fbo.vert'),
+            fragmentShader: glsl.file('../glsl/fboThrough.frag'),
+            uniforms: {
+                resolution: { value: new Vector2(WIDTH, HEIGHT) },
+                inputTex: { value: undefined }
+            }
+        })
     }
 
     private copy2RenderTarget(input, output) {
