@@ -59,7 +59,6 @@ export default class Bulding {
                 position[3 * i + 2] = Math.random();
             }
 
-            console.timeEnd('process');
             const pointGeometry = new THREE.BufferGeometry();
             pointGeometry.center();
             // pointGeometry.addAttribute('position', new THREE.BufferAttribute(vertices, 3, false));

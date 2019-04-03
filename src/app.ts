@@ -1,90 +1,113 @@
-import * as THREE from 'three';
-import { Vector2, Vector3 } from 'three';
-import { BufferAttribute } from 'three';
+import {
+    WebGLRenderer,
+    Scene,
+    Vector3,
+    Vector2,
+    PerspectiveCamera,
+    AmbientLight,
+    SpotLight,
+    Ray,
+} from 'three';
+const OrbitControls = require('three-orbitcontrols')
 import RenderLooper from 'render-looper';
-// import * as building from './3dModules/building';
+
 import OffScreenFbo from './3dModules/offScreenFbo2';
 import Building from './3dModules/building2';
 import GlobalState from './globalState';
 
+class MainScene {
 
-const OrbitControls = require('three-orbitcontrols')
-const scene: THREE.Scene = new THREE.Scene();
+    private scene: Scene;
+    private renderer: WebGLRenderer;
+    private camera: PerspectiveCamera;
+    private globalState: GlobalState;
+    private ray: Ray;
 
-const camera: THREE.PerspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-// camera.position.setZ(200);
-camera.position.set(0, 50, 500);
-camera.lookAt(new Vector3(0, 50, 0));
+    constructor() {
+        this.renderer = new WebGLRenderer({ antialias: true });
+        this.renderer.setPixelRatio( window.devicePixelRatio );
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(this.renderer.domElement);
+        const { left, top, width, height } = this.renderer.domElement.getBoundingClientRect();
+        this.globalState = new GlobalState(left, top, width, height);
 
-const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio( window.devicePixelRatio );
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-const controls = new OrbitControls(camera, renderer.domElement);
+        this.scene = new Scene();
 
-const ambient = new THREE.AmbientLight( 0xcccccc );
+        const offScreenFbo: OffScreenFbo = new OffScreenFbo(this.renderer);
+        const building = new Building(this.scene, offScreenFbo);
 
-const spot = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI / 2, 1 );
-spot.position.x = 400;
-spot.position.y = 700;
-spot.position.z = 200;
-spot.target.position.set( 0, 0, 0 );
-spot.castShadow = true;
+        this.setLights();
+        this.setCamera();
+        this.renderFrame = this.renderFrame.bind(this);
+        this.onMouseMove = this.onMouseMove.bind(this);
 
-spot.shadowCameraNear = 100;
-spot.shadowCameraFar = 2500;
-spot.shadowCameraFov = 120;
+        this.ray = new Ray();
+        this.registerEvents();
+    }
 
-spot.shadowBias = 0.0003;
-spot.shadowMapWidth = 1024;
-spot.shadowMapHeight = 2048;
-scene.add(ambient);
-scene.add( spot );
+    start() {
+        this.loop();
+    }
 
-const { left, top, width, height } = renderer.domElement.getBoundingClientRect();
-const globalState: GlobalState = new GlobalState(left, top, width, height);
-let looper = null;
-const ray: THREE.Ray = new THREE.Ray();
-init();
+    updateSpherePos() {
+        const currentMousePos2D: Vector2 = this.globalState.getMousePos2D();
+        const ray: Ray = this.ray;
+        ray.origin.setFromMatrixPosition(this.camera.matrixWorld);
+        ray.direction.set(currentMousePos2D.x, currentMousePos2D.y, 0.5).unproject(this.camera).sub(ray.origin).normalize();
+        const distance: number = ray.origin.length() / Math.cos(Math.PI - ray.direction.angleTo(ray.origin))
+        ray.origin.add(new Vector3().copy(ray.direction).multiplyScalar(distance));
+        this.globalState.setSpherePos3D(ray.origin);
+    }
 
-let building: Building = null;
+    registerEvents() {
+        this.renderer.domElement.addEventListener('mousemove', this.onMouseMove, false);
+    }
 
-function init() {
-    registerEvents();
-    const offScreenFbo: OffScreenFbo = new OffScreenFbo(renderer);
-    building = new Building(scene, offScreenFbo);
-    console.log('init done');
-    looper = new RenderLooper(render).start();
+    onMouseMove(e: MouseEvent) {
+        const { pageX, pageY } = e;
+        const globalState = this.globalState;
+        globalState.setMousePos2D(
+            2.0 * (pageX - globalState.canvasInfo.left) / globalState.canvasInfo.width - 1.0,
+            2.0 * (globalState.canvasInfo.height - (pageY - globalState.canvasInfo.top)) / globalState.canvasInfo.height - 1.0
+        );
+    }
+
+    private setLights() {
+        const ambient = new AmbientLight( 0xcccccc );
+        const spot = new SpotLight( 0xffffff, 1, 0, Math.PI / 2, 1 );
+        spot.position.x = 400;
+        spot.position.y = 700;
+        spot.position.z = 200;
+        spot.target.position.set( 0, 0, 0 );
+        spot.castShadow = true;
+
+        spot.shadowCameraNear = 100;
+        spot.shadowCameraFar = 2500;
+        spot.shadowCameraFov = 120;
+
+        spot.shadowBias = 0.0003;
+        spot.shadowMapWidth = 1024;
+        spot.shadowMapHeight = 2048;
+        this.scene.add(ambient);
+        this.scene.add( spot );
+    }
+
+    private setCamera() {
+        const { width, height } = this.renderer.domElement.getBoundingClientRect();
+        this.camera = new PerspectiveCamera(75, width / height, 0.1, 2000);
+        this.camera.position.set(0, 50, 500);
+        this.camera.lookAt(new Vector3(0, 50, 0));
+        const controls = new OrbitControls(this.camera, this.renderer.domElement);
+    }
+
+    private loop() {
+        new RenderLooper(this.renderFrame).start();
+    }
+
+    private renderFrame() {
+        this.updateSpherePos();
+        this.renderer.render(this.scene, this.camera);
+    }
 }
 
-function render() {
-    updateSpherePos();
-    renderer.setRenderTarget(null);
-    renderer.render(scene, camera);
-}
-
-function updateSpherePos() {
-    const currentMousePos2D: Vector2 = globalState.getMousePos2D();
-    ray.origin.setFromMatrixPosition(camera.matrixWorld);
-    ray.direction.set(currentMousePos2D.x, currentMousePos2D.y, 0.5).unproject(camera).sub(ray.origin).normalize();
-    const distance: number = ray.origin.length() / Math.cos(Math.PI - ray.direction.angleTo(ray.origin))
-    ray.origin.add(new Vector3().copy(ray.direction).multiplyScalar(distance));
-    globalState.setSpherePos3D(ray.origin);
-}
-
-function registerEvents() {
-    renderer.domElement.addEventListener('mousemove', onMouseMove, false);
-}
-
-function onMouseMove(e: MouseEvent) {
-    const { pageX, pageY } = e;
-    globalState.setMousePos2D(
-        2.0 * (pageX - globalState.canvasInfo.left) / globalState.canvasInfo.width - 1.0,
-        2.0 * (globalState.canvasInfo.height - (pageY - globalState.canvasInfo.top)) / globalState.canvasInfo.height - 1.0
-    );
-}
-
-// TODO: resize事件注册一下
-function onResize() {
-
-}
+new MainScene().start();
