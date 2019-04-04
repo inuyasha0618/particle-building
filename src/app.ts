@@ -98,7 +98,7 @@ class MainScene {
         });
 
         geometry.computeBoundingSphere();
-        this.boundingSphere = geometry.boundingSphere;
+        this.boundingSphere = geometry.boundingSphere.clone();
 
         this.sphere = new Mesh(geometry, backMaterial);
         this.sphere.add(new Mesh(geometry, frontMaterial));
@@ -117,11 +117,8 @@ class MainScene {
         ray.origin.setFromMatrixPosition(this.camera.matrixWorld);
         ray.direction.set(currentMousePos2D.x, currentMousePos2D.y, 0.5).unproject(this.camera).sub(ray.origin).normalize();
         const distance: number = ray.origin.length() / Math.cos(Math.PI - ray.direction.angleTo(ray.origin))
-        // ray.origin.add(new Vector3().copy(ray.direction).multiplyScalar(distance));
         ray.origin.add(ray.direction.multiplyScalar(distance));
         this.globalState.updateSpherePos3D(ray.origin);
-
-        // this.sphere.position.copy(this.globalState.getSpherePos3D());
         this.sphere.position.copy(ray.origin);
         this.boundingSphere.center.copy(ray.origin);
     }
