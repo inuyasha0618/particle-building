@@ -8,27 +8,41 @@ uniform float gravity;
 uniform float friction;
 uniform float radius;
 
+const float EPS = 0.0001;
+#pragma glslify: random = require(glsl-random)
+
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution;
-    vec3 lastVelocity = texture2D(lastFrameVelocity, uv).xyz;
+    vec3 velocity = texture2D(lastFrameVelocity, uv).xyz;
     vec3 defaultPosition = texture2D(defaultPos, uv).xyz;
     vec3 currentPosition = texture2D(currentPos, uv).xyz;
 
     // 判断粒子是否调落到水平面以下
-    float isAboveGround = step(0.0, currentPosition.y);
+    // float isAboveGround = step(0.0, currentPosition.y);
 
     // 粒子是否在sphere作用半径内
-    float distance = length(currentPosition - sphere3dPos);
-    float isInSphere = 1.0 - step(radius, distance);
+    // float distance = length(currentPosition - sphere3dPos);
+    float isInSphere = 1.0 - step(radius, distance(currentPosition, sphere3dPos));
 
-    vec3 repulsive = (currentPosition - sphere3dPos) * 0.001 * isInSphere;
-    vec3 g = vec3(0.0, -gravity * (1000.0 - defaultPosition.y) * 0.0001, 0.0);
-    vec3 frict = vec3(-lastVelocity.x * friction, 0.0, -lastVelocity.z * friction);
-    vec3 tagent = sphereVelocity * 0.0;
+    // 粒子偏移出原来位置的偏移量
+    float positionOffset = distance(currentPosition, defaultPosition);
 
-    // vec3 velocity = mix(vec3(lastVelocity.x, -0.8 * lastVelocity.y, lastVelocity.z), lastVelocity + repulsive + g + frict + tagent, isAboveGround);
-    vec3 velocity = lastVelocity + repulsive + frict + tagent;
-    // vec3 velocity = mix(vec3(lastVelocity.x, -0.8 * lastVelocity.y, lastVelocity.z), lastVelocity + repulsive + frict + tagent, isAboveGround);
+    // 计算空气阻力及重力 / 反弹 对速度的影响
+    if (currentPosition.y > 0.0) {
+        velocity += step(EPS, positionOffset) * vec3(0.0, -gravity * ((1.0 - defaultPosition.y * 0.001) + random(defaultPosition.xy)), 0.0);
+        velocity.xz *= 1.0 - friction;
+    } else {
+        float strength = abs(velocity.y) * 0.2;
+        velocity.y *= -0.4 - random(uv + 2.0) * 0.2;
+        velocity.x += (random(currentPosition.xy + strength) - 0.5);
+        velocity.z += (random(currentPosition.zy) - 0.5);
+        velocity.xz *= strength;
+    }
+
+    vec3 repulsive = normalize(currentPosition - sphere3dPos);
+    vec3 tagent = sphereVelocity * 0.08;
+
+    velocity += (repulsive + tagent) * (1.0 + random(vec2(currentPosition.x + currentPosition.y, currentPosition.z)) * 0.3) * isInSphere;
 
     gl_FragColor = vec4(velocity, 1.0);
 }

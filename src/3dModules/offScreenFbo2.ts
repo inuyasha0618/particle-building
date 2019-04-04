@@ -187,8 +187,8 @@ export default class OffScreenFbo {
                 currentPos: { value: undefined },
                 sphere3dPos: { value: undefined},
                 sphereVelocity: { value: undefined },
-                gravity: { value: 1.0 },
-                friction: { value: 0.1 },
+                gravity: { value: 0.1 },
+                friction: { value: 0.01 },
                 radius: { value: settings.RADIUS}
             },
             transparent: false,
