@@ -22,6 +22,7 @@ import RenderLooper from 'render-looper';
 import OffScreenFbo from './3dModules/offScreenFbo2';
 import Building from './3dModules/building2';
 import GlobalState from './globalState';
+import settings from './settings';
 
 class MainScene {
 
@@ -72,7 +73,7 @@ class MainScene {
     }
 
     private setSphere() {
-        const geometry: SphereBufferGeometry = new SphereBufferGeometry(25, 60, 60);
+        const geometry: SphereBufferGeometry = new SphereBufferGeometry(settings.RADIUS, 60, 60);
         const backMaterial: MeshPhongMaterial = new MeshPhongMaterial({
             side: BackSide,
             color: new Color().setHex(0x777777),
@@ -80,7 +81,7 @@ class MainScene {
             shininess: 12,
             reflectivity: 0.5,
             blending: AdditiveBlending,
-            opacity: 0.3,
+            opacity: 0.6,
         });
 
         const frontMaterial: MeshPhongMaterial = new MeshPhongMaterial({
@@ -90,7 +91,7 @@ class MainScene {
             shininess: 12,
             reflectivity: 0.5,
             blending: AdditiveBlending,
-            opacity: 0.3,
+            opacity: 0.6,
         });
         
         this.sphere = new Mesh(geometry, backMaterial);
