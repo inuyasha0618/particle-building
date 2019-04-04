@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import {
     BufferGeometry,
-    Points
+    Points,
+    Box3
 } from 'three';
 import OffScreenFbo from './offScreenFbo2';
 import settings from '../settings';
@@ -15,6 +16,7 @@ const loader = new THREE.OBJLoader();
 export default class Bulding {
     private offSceenFbo: OffScreenFbo;
     mesh: Points;
+    boundingBox: Box3;
 
     constructor(offSceenFbo: OffScreenFbo ) {
         this.offSceenFbo = offSceenFbo;
@@ -52,8 +54,8 @@ export default class Bulding {
         const vertices: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 3);
         const normals: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 3);
         const uvs: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 2);
-        loader.load('../../models/o.obj', (object) => {
-        // loader.load('../../models/male02.obj', (object) => {
+        // loader.load('../../models/o.obj', (object) => {
+        loader.load('../../models/male02.obj', (object) => {
             totalBufferGeometry = BufferGeometryUtils.mergeBufferGeometries(object.children.map(child => child.geometry), false);
             const originalPositions = totalBufferGeometry.attributes.position.array;
             const originalNormals = totalBufferGeometry.attributes.normal.array;
@@ -62,7 +64,7 @@ export default class Bulding {
             const remainder = PARTICLE_AMOUNTS - originalPtsCnts;
             const result = GeometryUtils.randomPointsInBufferGeometry(totalBufferGeometry, remainder)
             let pointIndex = originalPtsCnts;
-
+            this.computeBoundingBox(totalBufferGeometry);
             vertices.set(originalPositions);
             normals.set(originalNormals);
             for (let i = 0, len = result.length; i < len; ++i) {
@@ -94,5 +96,10 @@ export default class Bulding {
             this.offSceenFbo.initDefaultPositions(vertices);
             this.mesh.material.uniforms.texturePosition.value = this.offSceenFbo.currentFramePosRenderTarget.texture;
         });
+    }
+
+    computeBoundingBox(bufferGeometry: BufferGeometry) {
+        bufferGeometry.computeBoundingBox();
+        this.boundingBox = bufferGeometry.boundingBox;
     }
 }

@@ -15,6 +15,7 @@ import {
     AdditiveBlending,
     BackSide,
     FrontSide,
+    Sphere,
 } from 'three';
 const OrbitControls = require('three-orbitcontrols')
 import RenderLooper from 'render-looper';
@@ -34,6 +35,8 @@ class MainScene {
     private building: Building;
     private offScreenFbo: OffScreenFbo;
     private sphere: Mesh;
+    private boundingSphere: Sphere;
+    private resetTimer: number;
 
     constructor() {
         this.renderer = this.setRenderer();
@@ -93,7 +96,10 @@ class MainScene {
             blending: AdditiveBlending,
             opacity: 0.6,
         });
-        
+
+        geometry.computeBoundingSphere();
+        this.boundingSphere = geometry.boundingSphere;
+
         this.sphere = new Mesh(geometry, backMaterial);
         this.sphere.add(new Mesh(geometry, frontMaterial));
         this.scene.add(this.sphere);
@@ -102,6 +108,7 @@ class MainScene {
     private bind2this() {
         this.renderFrame = this.renderFrame.bind(this);
         this.onMouseMove = this.onMouseMove.bind(this);
+        this.resetAnimation = this.resetAnimation.bind(this);
     }
 
     private updateSpherePos() {
@@ -114,7 +121,9 @@ class MainScene {
         ray.origin.add(ray.direction.multiplyScalar(distance));
         this.globalState.updateSpherePos3D(ray.origin);
 
-        this.sphere.position.copy(this.globalState.getSpherePos3D());
+        // this.sphere.position.copy(this.globalState.getSpherePos3D());
+        this.sphere.position.copy(ray.origin);
+        this.boundingSphere.center.copy(ray.origin);
     }
 
     private registerEvents() {
@@ -164,8 +173,28 @@ class MainScene {
 
     private renderFrame() {
         this.updateSpherePos();
+        this.updateResetTimer();
         this.offScreenFbo.update(this.globalState);
         this.renderer.render(this.scene, this.camera);
+    }
+
+    private setTimer() {
+        this.resetTimer = window.setTimeout(this.resetAnimation, 1000);
+    }
+
+    private checkIntersect(): boolean {
+        return !this.building.boundingBox ? true : this.boundingSphere.intersectsBox(this.building.boundingBox)
+    }
+
+    private updateResetTimer() {
+        if (this.checkIntersect()) {
+            window.clearTimeout(this.resetTimer);
+            this.setTimer();
+        }
+    }
+
+    private resetAnimation() {
+        console.log('resetAnimation');
     }
 }
 
