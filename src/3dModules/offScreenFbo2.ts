@@ -46,6 +46,16 @@ export default class OffScreenFbo {
         this.offScreenScene = new Scene();
         this.mesh = new Mesh(new PlaneBufferGeometry(2, 2), this.copyShader);
         this.offScreenScene.add(this.mesh);
+
+        var gl = renderer.getContext();
+        if ( !gl.getParameter(gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS) ) {
+            alert( 'No support for vertex shader textures!' );
+            return;
+        }
+        if ( !gl.getExtension( 'OES_texture_float' )) {
+            alert( 'No OES_texture_float support for float textures!' );
+            return;
+        }
     }
 
     public update(globalState: GlobalState) {
@@ -57,7 +67,11 @@ export default class OffScreenFbo {
         const spherePos: Vector3 = globalState.getSpherePos3D();
         const sphereVelocity: Vector3 = globalState.getSephereVelocity();
         this.mesh.material = this.velocityShader;
-        this.swapRenderTarget(this.lastFrameVelocityRenderTarget, this.currentFrameVelocityRenderTarget);
+        // this.swapRenderTarget(this.lastFrameVelocityRenderTarget, this.currentFrameVelocityRenderTarget);
+
+        let tmp: WebGLRenderTarget = this.lastFrameVelocityRenderTarget;
+        this.lastFrameVelocityRenderTarget = this.currentFrameVelocityRenderTarget;
+        this.currentFrameVelocityRenderTarget = tmp;
 
         this.velocityShader.uniforms.lastFrameVelocity.value = this.lastFrameVelocityRenderTarget.texture;
         this.velocityShader.uniforms.defaultPos.value = this.defaultPosRenderTarget.texture;
@@ -71,7 +85,12 @@ export default class OffScreenFbo {
     }
 
     private updatePosition(globalState: GlobalState) {
-        this.swapRenderTarget(this.lastFramePosRenderTarget, this.currentFramePosRenderTarget);
+        // this.swapRenderTarget(this.lastFramePosRenderTarget, this.currentFramePosRenderTarget);
+
+        let tmp: WebGLRenderTarget = this.lastFramePosRenderTarget;
+        this.lastFramePosRenderTarget = this.currentFramePosRenderTarget;
+        this.currentFramePosRenderTarget = tmp;
+
         this.mesh.material = this.positionShader;
 
         this.positionShader.uniforms.lastFramePos.value = this.lastFramePosRenderTarget.texture;
@@ -81,6 +100,8 @@ export default class OffScreenFbo {
         this.renderer.setRenderTarget(this.currentFramePosRenderTarget);
         this.renderer.render(this.offScreenScene, this.camera);
         this.renderer.setRenderTarget(null);
+
+        // this.copy2RenderTarget(this.currentFrameVelocityRenderTarget.texture, null);
     }
 
     private swapRenderTarget(lastRenderTarget: WebGLRenderTarget, currentRenderTarget: WebGLRenderTarget) {
@@ -168,7 +189,10 @@ export default class OffScreenFbo {
                 sphereVelocity: { value: undefined },
                 gravity: { value: 1.0 },
                 friction: { value: 0.1 }
-            }
+            },
+            transparent: false,
+            depthWrite: false,
+            depthTest: false
         });
 
         this.positionShader = new ShaderMaterial({
@@ -179,7 +203,10 @@ export default class OffScreenFbo {
                 lastFramePos: { value: undefined },
                 defaultPos: { value: undefined },
                 velocity: { value: undefined }
-            }
+            },
+            transparent: false,
+            depthWrite: false,
+            depthTest: false
         });
     }
 
