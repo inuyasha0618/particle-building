@@ -78,6 +78,7 @@ export default class OffScreenFbo {
         this.velocityShader.uniforms.currentPos.value = this.currentFramePosRenderTarget.texture;
         this.velocityShader.uniforms.sphere3dPos.value = spherePos;
         this.velocityShader.uniforms.sphereVelocity.value = sphereVelocity;
+        this.velocityShader.uniforms.resetAnimation.value = globalState.resetAnimation;
 
         this.renderer.setRenderTarget(this.currentFrameVelocityRenderTarget);
         this.renderer.render(this.offScreenScene, this.camera);
@@ -96,18 +97,13 @@ export default class OffScreenFbo {
         this.positionShader.uniforms.lastFramePos.value = this.lastFramePosRenderTarget.texture;
         this.positionShader.uniforms.defaultPos.value = this.defaultPosRenderTarget.texture;
         this.positionShader.uniforms.velocity.value = this.currentFrameVelocityRenderTarget.texture;
+        this.positionShader.uniforms.resetAnimation.value = globalState.resetAnimation;
 
         this.renderer.setRenderTarget(this.currentFramePosRenderTarget);
         this.renderer.render(this.offScreenScene, this.camera);
         this.renderer.setRenderTarget(null);
 
         // this.copy2RenderTarget(this.currentFrameVelocityRenderTarget.texture, null);
-    }
-
-    private swapRenderTarget(lastRenderTarget: WebGLRenderTarget, currentRenderTarget: WebGLRenderTarget) {
-        let tmp: WebGLRenderTarget = lastRenderTarget;
-        lastRenderTarget = currentRenderTarget;
-        currentRenderTarget = tmp;
     }
 
     public initDefaultPositions(defaultPositions: Float32Array) {
@@ -187,9 +183,10 @@ export default class OffScreenFbo {
                 currentPos: { value: undefined },
                 sphere3dPos: { value: undefined},
                 sphereVelocity: { value: undefined },
-                gravity: { value: 0.1 },
+                gravity: { value: 0.001 },
                 friction: { value: 0.01 },
-                radius: { value: settings.RADIUS}
+                radius: { value: settings.RADIUS},
+                resetAnimation: {value: undefined}
             },
             transparent: false,
             depthWrite: false,
@@ -203,7 +200,8 @@ export default class OffScreenFbo {
                 resolution: { value: new Vector2(WIDTH, HEIGHT) },
                 lastFramePos: { value: undefined },
                 defaultPos: { value: undefined },
-                velocity: { value: undefined }
+                velocity: { value: undefined },
+                resetAnimation: {value: undefined}
             },
             transparent: false,
             depthWrite: false,

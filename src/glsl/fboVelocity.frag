@@ -7,6 +7,7 @@ uniform vec3 sphereVelocity;
 uniform float gravity;
 uniform float friction;
 uniform float radius;
+uniform float resetAnimation;
 
 const float EPS = 0.0001;
 #pragma glslify: random = require(glsl-random)
@@ -39,10 +40,12 @@ void main() {
         velocity.xz *= strength;
     }
 
-    vec3 repulsive = normalize(currentPosition - sphere3dPos);
+    vec3 repulsive = normalize(currentPosition - sphere3dPos) * random(defaultPosition.xy);
     vec3 tagent = sphereVelocity * 0.08;
 
     velocity += (repulsive + tagent) * (1.0 + random(vec2(currentPosition.x + currentPosition.y, currentPosition.z)) * 0.3) * isInSphere;
+
+    velocity *= step(-EPS, -resetAnimation);
 
     gl_FragColor = vec4(velocity, 1.0);
 }

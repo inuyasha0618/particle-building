@@ -13,6 +13,7 @@ export default class GlobalState {
     private lastFrameSpherePos3D: Vector3 = new Vector3(0.0, 0.0, 0.0);
     private isPhysicActive: boolean = false;
     readonly sphereRadius: number = 5.0;
+    public resetAnimation: number = 0.0;
     private velocity: Vector3 = new Vector3(0.0, 0.0, 0.0);
     canvasInfo: CvsInfo = { left: 0.0, top: 0.0, width: 0.0, height: 0.0 };
 

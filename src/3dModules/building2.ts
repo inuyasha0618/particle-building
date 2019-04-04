@@ -1,8 +1,11 @@
 import * as THREE from 'three';
 import {
     BufferGeometry,
+    BufferAttribute,
     Points,
-    Box3
+    Box3,
+    Mesh,
+    MeshPhongMaterial
 } from 'three';
 import OffScreenFbo from './offScreenFbo2';
 import settings from '../settings';
@@ -16,16 +19,17 @@ const loader = new THREE.OBJLoader();
 export default class Bulding {
     private offSceenFbo: OffScreenFbo;
     mesh: Points;
+    bodyMesh: Mesh;
     boundingBox: Box3;
 
     constructor(offSceenFbo: OffScreenFbo ) {
         this.offSceenFbo = offSceenFbo;
-        this.mesh = this.setMesh();
+        this.setMesh();
         this.loadModel();
     }
 
     getSpecifiedMaterial() {
-        let newPointMaterial = new THREE.MeshPhongMaterial({
+        let newPointMaterial = new MeshPhongMaterial({
             color: new THREE.Color().setHex(0x777777),
             specular: new THREE.Color().setHex(0x222222),
             shininess: 12,
@@ -43,8 +47,15 @@ export default class Bulding {
         return newPointMaterial;
     }
 
-    setMesh(): Points {
-        return new THREE.Points(new BufferGeometry(), this.getSpecifiedMaterial());
+    setMesh() {
+        this.mesh =  new Points(new BufferGeometry(), this.getSpecifiedMaterial());
+        this.bodyMesh = new Mesh(new BufferGeometry(), new MeshPhongMaterial({
+            color: new THREE.Color().setHex(0x555555),
+            specular: new THREE.Color().setHex(0x222222),
+            shininess: 12,
+            reflectivity: 0.5,
+            blending: THREE.NoBlending
+        }))
     }
 
     loadModel() {
@@ -54,8 +65,8 @@ export default class Bulding {
         const vertices: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 3);
         const normals: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 3);
         const uvs: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 2);
-        // loader.load('../../models/o.obj', (object) => {
-        loader.load('../../models/male02.obj', (object) => {
+        loader.load('../../models/o.obj', (object) => {
+        // loader.load('../../models/male02.obj', (object) => {
             totalBufferGeometry = BufferGeometryUtils.mergeBufferGeometries(object.children.map(child => child.geometry), false);
             const originalPositions = totalBufferGeometry.attributes.position.array;
             const originalNormals = totalBufferGeometry.attributes.normal.array;
@@ -89,12 +100,17 @@ export default class Bulding {
                 position[3 * i + 2] = Math.random();
             }
 
+            const normalBufferAttribute: BufferAttribute = new BufferAttribute(normals, 3, false);
+
             (<THREE.BufferGeometry>this.mesh.geometry).addAttribute('position', new THREE.BufferAttribute(position, 3, false));
-            (<THREE.BufferGeometry>this.mesh.geometry).addAttribute('normal', new THREE.BufferAttribute(normals, 3, false));
+            (<THREE.BufferGeometry>this.mesh.geometry).addAttribute('normal', normalBufferAttribute);
             // pointGeometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2, false));
 
             this.offSceenFbo.initDefaultPositions(vertices);
             this.mesh.material.uniforms.texturePosition.value = this.offSceenFbo.currentFramePosRenderTarget.texture;
+
+            (<THREE.BufferGeometry>this.bodyMesh.geometry).addAttribute('position', new THREE.BufferAttribute(originalPositions, 3, false));
+            (<THREE.BufferGeometry>this.bodyMesh.geometry).addAttribute('normal',  new THREE.BufferAttribute(originalNormals, 3, false));
         });
     }
 

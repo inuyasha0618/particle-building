@@ -73,6 +73,7 @@ class MainScene {
         this.offScreenFbo = new OffScreenFbo(this.renderer);
         this.building = new Building(this.offScreenFbo);
         this.scene.add(this.building.mesh);
+        this.scene.add(this.building.bodyMesh);
     }
 
     private setSphere() {
@@ -171,8 +172,10 @@ class MainScene {
     private renderFrame() {
         this.updateSpherePos();
         this.updateResetTimer();
+        this.updateResetRate();
         this.offScreenFbo.update(this.globalState);
         this.renderer.render(this.scene, this.camera);
+        console.log(this.globalState.resetAnimation);
     }
 
     private setTimer() {
@@ -192,6 +195,17 @@ class MainScene {
 
     private resetAnimation() {
         console.log('resetAnimation');
+        this.globalState.resetAnimation = 0.0001;
+    }
+
+    private updateResetRate() {
+        if (this.globalState.resetAnimation > 1.0) {
+            this.globalState.resetAnimation = 0.0;
+        }
+
+        if (this.globalState.resetAnimation >= 0.0001) {
+            this.globalState.resetAnimation += 0.01;
+        }
     }
 }
 
