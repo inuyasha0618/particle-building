@@ -20,7 +20,7 @@ void main() {
 
     // vec3 velocity = lastVelocity + repulsive + g + frict + tagent;
     // vec3 velocity = lastVelocity + repulsive + g + frict;
-    vec3 velocity = vec3(0.0);
+    vec3 velocity = vec3(0.0, -10.0, 0.0);
 
     gl_FragColor = vec4(velocity, 1.0);
 }

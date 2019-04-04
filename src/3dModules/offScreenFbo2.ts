@@ -107,6 +107,23 @@ export default class OffScreenFbo {
         this.copy2RenderTarget(defaultPosTexture, this.defaultPosRenderTarget);
         this.copy2RenderTarget(defaultPosTexture, this.lastFramePosRenderTarget);
         this.copy2RenderTarget(defaultPosTexture, this.currentFramePosRenderTarget);
+
+        const velocityTexture = new DataTexture(
+            new Float32Array(defaultPositions.length),
+            settings.WIDTH,
+            settings.HEIGHT,
+            RGBFormat,
+            FloatType
+        )
+        velocityTexture.wrapS = ClampToEdgeWrapping;
+        velocityTexture.wrapT = ClampToEdgeWrapping;
+        velocityTexture.minFilter = NearestFilter;
+        velocityTexture.magFilter = NearestFilter;
+        velocityTexture.needsUpdate = true;
+        velocityTexture.flipY = false;
+
+        this.copy2RenderTarget(velocityTexture, this.lastFrameVelocityRenderTarget);
+        this.copy2RenderTarget(velocityTexture, this.currentFrameVelocityRenderTarget);
     }
 
     private initRenderTargets() {
