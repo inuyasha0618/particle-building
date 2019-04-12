@@ -32,11 +32,14 @@ export default class OffScreenFbo {
     public currentFramePosRenderTarget: WebGLRenderTarget;
     private lastFrameVelocityRenderTarget: WebGLRenderTarget;
     public currentFrameVelocityRenderTarget: WebGLRenderTarget;
+    private lastFrameLifeRenderTarget: WebGLRenderTarget;
+    private currentFrameLifeRenderTarget: WebGLRenderTarget;
 
     // shader materials:
     private copyShader: ShaderMaterial;
     private velocityShader: ShaderMaterial;
     private positionShader: ShaderMaterial;
+    private lifeShader: ShaderMaterial;
 
     constructor(renderer: WebGLRenderer) {
         this.initRenderTargets();
@@ -59,8 +62,26 @@ export default class OffScreenFbo {
     }
 
     public update(globalState: GlobalState) {
+        this.updateLife();
         this.updateVelocity(globalState);
         this.updatePosition(globalState);
+    }
+
+    private updateLife() {
+        this.mesh.material = this.lifeShader;
+
+        let tmp: WebGLRenderTarget = this.lastFrameLifeRenderTarget;
+        this.lastFrameLifeRenderTarget = this.currentFrameLifeRenderTarget;
+        this.currentFrameLifeRenderTarget = tmp;
+
+        this.lifeShader.uniforms.lastFrameLife.value = this.lastFrameLifeRenderTarget.texture;
+        this.lifeShader.uniforms.currentFramePos.value = this.currentFramePosRenderTarget.texture;
+        this.lifeShader.uniforms.defaultPos.value = this.defaultPosRenderTarget.texture;
+        this.lifeShader.uniforms.velocity.value = this.currentFrameVelocityRenderTarget.texture;
+
+        this.renderer.setRenderTarget(this.currentFrameLifeRenderTarget);
+        this.renderer.render(this.offScreenScene, this.camera);
+        this.renderer.setRenderTarget(null);
     }
 
     private updateVelocity(globalState: GlobalState) {
@@ -79,6 +100,7 @@ export default class OffScreenFbo {
         this.velocityShader.uniforms.sphere3dPos.value = spherePos;
         this.velocityShader.uniforms.sphereVelocity.value = sphereVelocity;
         this.velocityShader.uniforms.resetAnimation.value = globalState.resetAnimation;
+        this.velocityShader.uniforms.life.value = this.currentFrameLifeRenderTarget.texture;
 
         this.renderer.setRenderTarget(this.currentFrameVelocityRenderTarget);
         this.renderer.render(this.offScreenScene, this.camera);
@@ -98,6 +120,7 @@ export default class OffScreenFbo {
         this.positionShader.uniforms.defaultPos.value = this.defaultPosRenderTarget.texture;
         this.positionShader.uniforms.velocity.value = this.currentFrameVelocityRenderTarget.texture;
         this.positionShader.uniforms.resetAnimation.value = globalState.resetAnimation;
+        this.positionShader.uniforms.life.value = this.currentFrameLifeRenderTarget.texture;
 
         this.renderer.setRenderTarget(this.currentFramePosRenderTarget);
         this.renderer.render(this.offScreenScene, this.camera);
@@ -141,6 +164,23 @@ export default class OffScreenFbo {
 
         this.copy2RenderTarget(velocityTexture, this.lastFrameVelocityRenderTarget);
         this.copy2RenderTarget(velocityTexture, this.currentFrameVelocityRenderTarget);
+
+        const lifeTexture = new DataTexture(
+            new Float32Array(defaultPositions.length),
+            settings.WIDTH,
+            settings.HEIGHT,
+            RGBFormat,
+            FloatType
+        )
+        lifeTexture.wrapS = ClampToEdgeWrapping;
+        lifeTexture.wrapT = ClampToEdgeWrapping;
+        lifeTexture.minFilter = NearestFilter;
+        lifeTexture.magFilter = NearestFilter;
+        lifeTexture.needsUpdate = true;
+        lifeTexture.flipY = false;
+
+        this.copy2RenderTarget(lifeTexture, this.lastFrameLifeRenderTarget);
+        this.copy2RenderTarget(lifeTexture, this.currentFrameLifeRenderTarget);
     }
 
     private initRenderTargets() {
@@ -160,6 +200,8 @@ export default class OffScreenFbo {
         this.currentFramePosRenderTarget = this.defaultPosRenderTarget.clone();
         this.lastFrameVelocityRenderTarget = this.defaultPosRenderTarget.clone();
         this.currentFrameVelocityRenderTarget = this.defaultPosRenderTarget.clone();
+        this.lastFrameLifeRenderTarget = this.defaultPosRenderTarget.clone();
+        this.currentFrameLifeRenderTarget = this.defaultPosRenderTarget.clone();
     }
 
     private initShaderMaterials() {
@@ -171,6 +213,21 @@ export default class OffScreenFbo {
                 resolution: { value: new Vector2(WIDTH, HEIGHT) },
                 inputTex: { value: undefined }
             }
+        });
+
+        this.lifeShader = new ShaderMaterial({
+            vertexShader: glsl.file('../glsl/fbo.vert'),
+            fragmentShader: glsl.file('../glsl/fboLife.frag'),
+            uniforms: {
+                resolution: { value: new Vector2(WIDTH, HEIGHT) },
+                lastFrameLife: { value: undefined },
+                velocity: { value: undefined },
+                currentFramePos: { value: undefined },
+                defaultPos: { value: undefined },
+            },
+            transparent: false,
+            depthWrite: false,
+            depthTest: false
         });
 
         this.velocityShader = new ShaderMaterial({
@@ -186,7 +243,8 @@ export default class OffScreenFbo {
                 gravity: { value: 0.001 },
                 friction: { value: 0.01 },
                 radius: { value: settings.RADIUS},
-                resetAnimation: {value: undefined}
+                resetAnimation: {value: undefined},
+                life: { value: undefined }
             },
             transparent: false,
             depthWrite: false,
@@ -201,7 +259,8 @@ export default class OffScreenFbo {
                 lastFramePos: { value: undefined },
                 defaultPos: { value: undefined },
                 velocity: { value: undefined },
-                resetAnimation: {value: undefined}
+                resetAnimation: {value: undefined},
+                life: { value: undefined }
             },
             transparent: false,
             depthWrite: false,

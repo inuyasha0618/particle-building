@@ -2,6 +2,7 @@ uniform vec2 resolution;
 uniform sampler2D lastFrameVelocity;
 uniform sampler2D defaultPos;
 uniform sampler2D currentPos;
+uniform sampler2D life;
 uniform vec3 sphere3dPos;
 uniform vec3 sphereVelocity;
 uniform float gravity;
@@ -17,7 +18,8 @@ void main() {
     vec3 velocity = texture2D(lastFrameVelocity, uv).xyz;
     vec3 defaultPosition = texture2D(defaultPos, uv).xyz;
     vec3 currentPosition = texture2D(currentPos, uv).xyz;
-
+    float currentLife = texture2D(life, uv).x;
+    float isActive = texture2D(lastFrameVelocity, uv).w;
     // 判断粒子是否调落到水平面以下
     // float isAboveGround = step(0.0, currentPosition.y);
 
@@ -45,7 +47,12 @@ void main() {
 
     velocity += (repulsive + tagent) * (1.0 + random(vec2(currentPosition.x + currentPosition.y, currentPosition.z)) * 0.3) * isInSphere;
 
-    velocity *= step(-EPS, -resetAnimation);
+    // velocity *= step(-EPS, -resetAnimation);
+    isActive = step(1.0 - EPS, isActive + isInSphere);
+    float isDead = step(1.0, currentLife);
+    velocity *= 1.0 - isDead;
+    isActive *= 1.0 - isDead;
 
-    gl_FragColor = vec4(velocity, 1.0);
+    // gl_FragColor = vec4(velocity, isActive);
+    gl_FragColor = vec4(velocity, 0.0);
 }

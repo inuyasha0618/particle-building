@@ -65,8 +65,8 @@ export default class Bulding {
         const vertices: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 3);
         const normals: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 3);
         const uvs: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 2);
-        loader.load('../../models/o.obj', (object) => {
-        // loader.load('../../models/male02.obj', (object) => {
+        // loader.load('../../models/o.obj', (object) => {
+        loader.load('../../models/male02.obj', (object) => {
             totalBufferGeometry = BufferGeometryUtils.mergeBufferGeometries(object.children.map(child => child.geometry), false);
             const originalPositions = totalBufferGeometry.attributes.position.array;
             const originalNormals = totalBufferGeometry.attributes.normal.array;

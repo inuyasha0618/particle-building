@@ -175,7 +175,7 @@ class MainScene {
         this.updateResetRate();
         this.offScreenFbo.update(this.globalState);
         this.renderer.render(this.scene, this.camera);
-        console.log(this.globalState.resetAnimation);
+        // console.log(this.globalState.resetAnimation);
     }
 
     private setTimer() {
