@@ -77,12 +77,14 @@ export default class Bulding {
             const originalNormals = totalBufferGeometry.attributes.normal.array;
             // const originalUvs = totalBufferGeometry.attributes.uv.array;
             const originalPtsCnts = totalBufferGeometry.attributes.position.count;
-            const remainder = PARTICLE_AMOUNTS - originalPtsCnts;
+            // const remainder = PARTICLE_AMOUNTS - originalPtsCnts;
+            const remainder = PARTICLE_AMOUNTS;
             const result = GeometryUtils.randomPointsInBufferGeometry(totalBufferGeometry, remainder)
-            let pointIndex = originalPtsCnts;
+            // let pointIndex = originalPtsCnts;
+            let pointIndex = 0;
             this.computeBoundingBox(totalBufferGeometry);
-            vertices.set(originalPositions);
-            normals.set(originalNormals);
+            // vertices.set(originalPositions);
+            // normals.set(originalNormals);
             for (let i = 0, len = result.length; i < len; ++i) {
                 const { position, normal, uv }  = result[i];
                 vertices[3 * pointIndex] = position.x;
