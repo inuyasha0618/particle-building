@@ -80,8 +80,8 @@ export default class OffScreenFbo {
         this.currentFrameLifeRenderTarget = tmp;
 
         this.lifeShader.uniforms.lastFrameLife.value = this.lastFrameLifeRenderTarget.texture;
-        this.lifeShader.uniforms.currentFramePos.value = this.currentFramePosRenderTarget.texture;
-        this.lifeShader.uniforms.defaultPos.value = this.defaultPosRenderTarget.texture;
+        // this.lifeShader.uniforms.currentFramePos.value = this.currentFramePosRenderTarget.texture;
+        // this.lifeShader.uniforms.defaultPos.value = this.defaultPosRenderTarget.texture;
         this.lifeShader.uniforms.velocity.value = this.currentFrameVelocityRenderTarget.texture;
 
         this.renderer.setRenderTarget(this.currentFrameLifeRenderTarget);
@@ -247,8 +247,6 @@ export default class OffScreenFbo {
                 resolution: { value: new Vector2(WIDTH, HEIGHT) },
                 lastFrameLife: { value: undefined },
                 velocity: { value: undefined },
-                currentFramePos: { value: undefined },
-                defaultPos: { value: undefined },
             },
             transparent: false,
             depthWrite: false,
