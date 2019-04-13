@@ -13,7 +13,8 @@ import {
     PlaneBufferGeometry,
     Vector2,
     DataTexture,
-    Vector3
+    Vector3,
+    Matrix4
 } from 'three';
 import settings from '../settings';
 const glsl = require('glslify');
@@ -42,6 +43,7 @@ export default class OffScreenFbo {
     private velocityShader: ShaderMaterial;
     private positionShader: ShaderMaterial;
     private lifeShader: ShaderMaterial;
+    private initPositionShader: ShaderMaterial;
 
     constructor(renderer: WebGLRenderer) {
         this.initRenderTargets();
@@ -151,9 +153,9 @@ export default class OffScreenFbo {
         defaultPosTexture.needsUpdate = true;
         defaultPosTexture.flipY = false;
     
-        this.copy2RenderTarget(defaultPosTexture, this.defaultPosRenderTarget);
-        this.copy2RenderTarget(defaultPosTexture, this.lastFramePosRenderTarget);
-        this.copy2RenderTarget(defaultPosTexture, this.currentFramePosRenderTarget);
+        this.createDefaultPosition(defaultPosTexture, this.defaultPosRenderTarget);
+        this.copy2RenderTarget(this.defaultPosRenderTarget.texture, this.lastFramePosRenderTarget);
+        this.copy2RenderTarget(this.defaultPosRenderTarget.texture, this.currentFramePosRenderTarget);
 
         const velocityTexture = new DataTexture(
             new Float32Array(defaultPositions.length),
@@ -213,6 +215,22 @@ export default class OffScreenFbo {
 
     private initShaderMaterials() {
         const { WIDTH, HEIGHT } = settings;
+        const modelMx: Matrix4 = new Matrix4();
+        modelMx.set(3.0, 0.0, 0.0, 0.0,
+                    0.0, 3.0, 0.0, -200.0,
+                    0.0, 0.0, 3.0, 0.0,
+                    0.0, 0.0, 0.0, 1.0);
+
+        this.initPositionShader = new ShaderMaterial({
+            vertexShader: glsl.file('../glsl/fbo.vert'),
+            fragmentShader: glsl.file('../glsl/fboInitPosition.frag'),
+            uniforms: {
+                resolution: { value: new Vector2(WIDTH, HEIGHT) },
+                inputTex: { value: undefined },
+                modelMx: { value: modelMx}
+            }
+        });
+
         this.copyShader = new ShaderMaterial({
             vertexShader: glsl.file('../glsl/fbo.vert'),
             fragmentShader: glsl.file('../glsl/fboThrough.frag'),
@@ -277,6 +295,14 @@ export default class OffScreenFbo {
 
     private copy2RenderTarget(input, output) {
         this.mesh.material = this.copyShader;
+        this.mesh.material.uniforms.inputTex.value = input;
+        this.renderer.setRenderTarget(output);
+        this.renderer.render(this.offScreenScene, this.camera);
+        this.renderer.setRenderTarget(null);
+    }
+
+    private createDefaultPosition(input, output) {
+        this.mesh.material = this.initPositionShader;
         this.mesh.material.uniforms.inputTex.value = input;
         this.renderer.setRenderTarget(output);
         this.renderer.render(this.offScreenScene, this.camera);

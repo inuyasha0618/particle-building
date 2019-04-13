@@ -43,7 +43,6 @@ export default class Bulding {
 
         var uniforms = THREE.UniformsUtils.merge( [THREE.ShaderLib.phong.uniforms] );
         uniforms.texturePosition = { value: undefined };
-        uniforms.textureLife = { value: undefined };
         newPointMaterial.uniforms = uniforms;
         newPointMaterial.type = 'ShaderMaterial';
         newPointMaterial.vertexShader = glsl.file('../glsl/meshphong.vert');
@@ -115,7 +114,7 @@ export default class Bulding {
 
             this.offSceenFbo.initDefaultPositions(vertices);
             this.mesh.material.uniforms.texturePosition.value = this.offSceenFbo.currentFramePosRenderTarget.texture;
-            this.mesh.material.uniforms.textureLife.value = this.offSceenFbo.currentFrameLifeRenderTarget.texture;
+            // this.mesh.material.uniforms.textureLife.value = this.offSceenFbo.currentFrameLifeRenderTarget.texture;
 
             (<THREE.BufferGeometry>this.bodyMesh.geometry).addAttribute('position', new THREE.BufferAttribute(originalPositions, 3, false));
             (<THREE.BufferGeometry>this.bodyMesh.geometry).addAttribute('normal',  new THREE.BufferAttribute(originalNormals, 3, false));

@@ -18,7 +18,6 @@ void main() {
     vec3 position = lastPosition + v;
     float positionOffset = distance(position, defaultPosition);
 
-    // position = mix(position, defaultPosition, pow(smoothstep(EPS, 1.0, resetAnimation), 0.5));
     position = mix(position, defaultPosition, step(1.0, currentLife));
-    gl_FragColor = vec4(position, 1.0);
+    gl_FragColor = vec4(position, clamp(currentLife, 0.0, 1.0));
 }
