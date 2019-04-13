@@ -52,7 +52,6 @@ export default class OffScreenFbo {
         this.renderer = renderer;
         this.offScreenScene = new Scene();
         this.mesh = new Mesh(new PlaneBufferGeometry(2, 2), this.copyShader);
-        // this.testBoard = new Mesh(new PlaneBufferGeometry(2, 2), this.copyShader);
         this.offScreenScene.add(this.mesh);
 
         var gl = renderer.getContext();
@@ -80,24 +79,18 @@ export default class OffScreenFbo {
         this.currentFrameLifeRenderTarget = tmp;
 
         this.lifeShader.uniforms.lastFrameLife.value = this.lastFrameLifeRenderTarget.texture;
-        // this.lifeShader.uniforms.currentFramePos.value = this.currentFramePosRenderTarget.texture;
-        // this.lifeShader.uniforms.defaultPos.value = this.defaultPosRenderTarget.texture;
+
         this.lifeShader.uniforms.velocity.value = this.currentFrameVelocityRenderTarget.texture;
 
         this.renderer.setRenderTarget(this.currentFrameLifeRenderTarget);
-        // this.renderer.setRenderTarget(null);
         this.renderer.render(this.offScreenScene, this.camera);
         this.renderer.setRenderTarget(null);
-
-        // this.copy2RenderTarget(this.currentFrameLifeRenderTarget.texture, null);
-        // this.copy2RenderTarget(this.currentFramePosRenderTarget.texture, null);
     }
 
     private updateVelocity(globalState: GlobalState) {
         const spherePos: Vector3 = globalState.getSpherePos3D();
         const sphereVelocity: Vector3 = globalState.getSephereVelocity();
         this.mesh.material = this.velocityShader;
-        // this.swapRenderTarget(this.lastFrameVelocityRenderTarget, this.currentFrameVelocityRenderTarget);
 
         let tmp: WebGLRenderTarget = this.lastFrameVelocityRenderTarget;
         this.lastFrameVelocityRenderTarget = this.currentFrameVelocityRenderTarget;
