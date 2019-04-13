@@ -6,6 +6,7 @@ uniform sampler2D velocity;
 uniform float resetAnimation;
 
 const float EPS = 0.0001;
+#pragma glslify: random = require(glsl-random)
 
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution;
@@ -20,7 +21,7 @@ void main() {
     vec3 position = lastPosition + v;
     float life = 0.0;
 
-    lastLife = mix(lastLife + 0.005 * isActive, 0.0, step(1.0, lastLife));
+    lastLife = mix(lastLife + 0.005 * (0.3 + 0.7 * random(uv)) * isActive, 0.0, step(1.0, lastLife));
 
     position = mix(position, defaultPosition, step(1.0, lastLife));
     gl_FragColor = vec4(position, lastLife);

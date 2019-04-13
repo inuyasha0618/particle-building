@@ -172,8 +172,8 @@ class MainScene {
 
     private renderFrame() {
         this.updateSpherePos();
-        this.updateResetTimer();
-        this.updateResetRate();
+        // this.updateResetTimer();
+        // this.updateResetRate();
         this.offScreenFbo.update(this.globalState);
         this.renderer.render(this.scene, this.camera);
         // console.log(this.globalState.resetAnimation);
