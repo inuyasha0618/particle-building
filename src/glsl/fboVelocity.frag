@@ -2,7 +2,6 @@ uniform vec2 resolution;
 uniform sampler2D lastFrameVelocity;
 uniform sampler2D defaultPos;
 uniform sampler2D currentPos;
-uniform sampler2D life;
 uniform vec3 sphere3dPos;
 uniform vec3 sphereVelocity;
 uniform float gravity;
@@ -17,8 +16,10 @@ void main() {
     vec2 uv = gl_FragCoord.xy / resolution;
     vec3 velocity = texture2D(lastFrameVelocity, uv).xyz;
     vec3 defaultPosition = texture2D(defaultPos, uv).xyz;
-    vec3 currentPosition = texture2D(currentPos, uv).xyz;
-    float currentLife = texture2D(life, uv).x;
+    vec4 posInfo = texture2D(currentPos, uv).xyzw;
+    vec3 currentPosition = posInfo.xyz;
+    // float currentLife = texture2D(life, uv).x;
+    float currentLife = posInfo.w;
     float isActive = texture2D(lastFrameVelocity, uv).w;
     // 判断粒子是否调落到水平面以下
     // float isAboveGround = step(0.0, currentPosition.y);

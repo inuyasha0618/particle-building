@@ -66,7 +66,7 @@ export default class OffScreenFbo {
     }
 
     public update(globalState: GlobalState) {
-        this.updateLife();
+        // this.updateLife();
         this.updateVelocity(globalState);
         this.updatePosition(globalState);
     }
@@ -102,7 +102,7 @@ export default class OffScreenFbo {
         this.velocityShader.uniforms.sphere3dPos.value = spherePos;
         this.velocityShader.uniforms.sphereVelocity.value = sphereVelocity;
         this.velocityShader.uniforms.resetAnimation.value = globalState.resetAnimation;
-        this.velocityShader.uniforms.life.value = this.currentFrameLifeRenderTarget.texture;
+        // this.velocityShader.uniforms.life.value = this.currentFrameLifeRenderTarget.texture;
 
         this.renderer.setRenderTarget(this.currentFrameVelocityRenderTarget);
         this.renderer.render(this.offScreenScene, this.camera);
@@ -122,7 +122,7 @@ export default class OffScreenFbo {
         this.positionShader.uniforms.defaultPos.value = this.defaultPosRenderTarget.texture;
         this.positionShader.uniforms.velocity.value = this.currentFrameVelocityRenderTarget.texture;
         this.positionShader.uniforms.resetAnimation.value = globalState.resetAnimation;
-        this.positionShader.uniforms.life.value = this.currentFrameLifeRenderTarget.texture;
+        // this.positionShader.uniforms.life.value = this.currentFrameLifeRenderTarget.texture;
 
         this.renderer.setRenderTarget(this.currentFramePosRenderTarget);
         this.renderer.render(this.offScreenScene, this.camera);
@@ -233,18 +233,18 @@ export default class OffScreenFbo {
             }
         });
 
-        this.lifeShader = new ShaderMaterial({
-            vertexShader: glsl.file('../glsl/fbo.vert'),
-            fragmentShader: glsl.file('../glsl/fboLife.frag'),
-            uniforms: {
-                resolution: { value: new Vector2(WIDTH, HEIGHT) },
-                lastFrameLife: { value: undefined },
-                velocity: { value: undefined },
-            },
-            transparent: false,
-            depthWrite: false,
-            depthTest: false
-        });
+        // this.lifeShader = new ShaderMaterial({
+        //     vertexShader: glsl.file('../glsl/fbo.vert'),
+        //     fragmentShader: glsl.file('../glsl/fboLife.frag'),
+        //     uniforms: {
+        //         resolution: { value: new Vector2(WIDTH, HEIGHT) },
+        //         lastFrameLife: { value: undefined },
+        //         velocity: { value: undefined },
+        //     },
+        //     transparent: false,
+        //     depthWrite: false,
+        //     depthTest: false
+        // });
 
         this.velocityShader = new ShaderMaterial({
             vertexShader: glsl.file('../glsl/fbo.vert'),
@@ -260,7 +260,7 @@ export default class OffScreenFbo {
                 friction: { value: 0.01 },
                 radius: { value: settings.RADIUS},
                 resetAnimation: {value: undefined},
-                life: { value: undefined }
+                // life: { value: undefined }
             },
             transparent: false,
             depthWrite: false,
@@ -276,7 +276,7 @@ export default class OffScreenFbo {
                 defaultPos: { value: undefined },
                 velocity: { value: undefined },
                 resetAnimation: {value: undefined},
-                life: { value: undefined }
+                // life: { value: undefined }
             },
             transparent: false,
             depthWrite: false,

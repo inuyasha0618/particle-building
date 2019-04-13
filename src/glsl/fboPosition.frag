@@ -2,7 +2,6 @@ uniform vec2 resolution;
 uniform sampler2D lastFramePos;
 uniform sampler2D defaultPos;
 uniform sampler2D velocity;
-uniform sampler2D life;
 
 uniform float resetAnimation;
 
@@ -10,14 +9,19 @@ const float EPS = 0.0001;
 
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution;
-    vec3 lastPosition = texture2D(lastFramePos, uv).xyz;
+    vec4 lastPosTex = texture2D(lastFramePos, uv).xyzw;
+    vec3 lastPosition = lastPosTex.xyz;
     vec3 defaultPosition = texture2D(defaultPos, uv).xyz;
-    float currentLife = texture2D(life, uv).x;
+    float lastLife = lastPosTex.w;
 
-    vec3 v = texture2D(velocity, uv).xyz;
+    vec4 lastVelocityTex = texture2D(velocity, uv).xyzw;
+    vec3 v = lastVelocityTex.xyz;
+    float isActive = lastVelocityTex.w;
     vec3 position = lastPosition + v;
-    float positionOffset = distance(position, defaultPosition);
+    float life = 0.0;
 
-    position = mix(position, defaultPosition, step(1.0, currentLife));
-    gl_FragColor = vec4(position, clamp(currentLife, 0.0, 1.0));
+    lastLife = mix(lastLife + 0.005 * isActive, 0.0, step(1.0, lastLife));
+
+    position = mix(position, defaultPosition, step(1.0, lastLife));
+    gl_FragColor = vec4(position, lastLife);
 }

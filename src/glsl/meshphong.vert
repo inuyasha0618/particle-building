@@ -42,7 +42,7 @@ void main() {
 	vec4 pos = texture2D(texturePosition, position.xy).xyzw;
 	transformed = pos.xyz;
 	// life = texture2D(textureLife, position.xy).x;
-	life = pos.w;
+	life = clamp(pos.w, 0.0, 1.0);
 
 	#include <morphtarget_vertex>
 	#include <skinning_vertex>
