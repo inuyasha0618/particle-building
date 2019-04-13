@@ -5,6 +5,8 @@ uniform vec3 emissive;
 uniform vec3 specular;
 uniform float shininess;
 uniform float opacity;
+varying float life;
+
 
 #include <common>
 #include <packing>
@@ -61,7 +63,7 @@ void main() {
 
 	#include <envmap_fragment>
 
-	gl_FragColor = vec4( outgoingLight, diffuseColor.a );
+	gl_FragColor = vec4( outgoingLight, diffuseColor.a * (1.0 - life) );
 
 	#include <tonemapping_fragment>
 	#include <encodings_fragment>

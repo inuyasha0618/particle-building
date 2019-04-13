@@ -34,11 +34,16 @@ export default class Bulding {
             specular: new THREE.Color().setHex(0x222222),
             shininess: 12,
             reflectivity: 0.5,
-            blending: THREE.NoBlending
+            // blending: THREE.AdditiveBlending
+            blending: THREE.CustomBlending,
+            blendEquation: THREE.AddEquation, //default
+            blendSrc: THREE.SrcAlphaFactor, //default
+            blendDst: THREE.OneMinusSrcAlphaFactor, //default
         });
 
         var uniforms = THREE.UniformsUtils.merge( [THREE.ShaderLib.phong.uniforms] );
         uniforms.texturePosition = { value: undefined };
+        uniforms.textureLife = { value: undefined };
         newPointMaterial.uniforms = uniforms;
         newPointMaterial.type = 'ShaderMaterial';
         newPointMaterial.vertexShader = glsl.file('../glsl/meshphong.vert');
@@ -108,6 +113,7 @@ export default class Bulding {
 
             this.offSceenFbo.initDefaultPositions(vertices);
             this.mesh.material.uniforms.texturePosition.value = this.offSceenFbo.currentFramePosRenderTarget.texture;
+            this.mesh.material.uniforms.textureLife.value = this.offSceenFbo.currentFrameLifeRenderTarget.texture;
 
             (<THREE.BufferGeometry>this.bodyMesh.geometry).addAttribute('position', new THREE.BufferAttribute(originalPositions, 3, false));
             (<THREE.BufferGeometry>this.bodyMesh.geometry).addAttribute('normal',  new THREE.BufferAttribute(originalNormals, 3, false));

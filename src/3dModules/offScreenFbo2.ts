@@ -8,6 +8,7 @@ import {
     ShaderMaterial,
     WebGLRenderer,
     RGBFormat,
+    RGBAFormat,
     FloatType,
     PlaneBufferGeometry,
     Vector2,
@@ -25,6 +26,7 @@ export default class OffScreenFbo {
     private camera: Camera;
     private renderer: WebGLRenderer;
     private mesh: Mesh;
+    public testBoard: Mesh;
     
     // render targets:
     public defaultPosRenderTarget: WebGLRenderTarget;
@@ -33,7 +35,7 @@ export default class OffScreenFbo {
     private lastFrameVelocityRenderTarget: WebGLRenderTarget;
     public currentFrameVelocityRenderTarget: WebGLRenderTarget;
     private lastFrameLifeRenderTarget: WebGLRenderTarget;
-    private currentFrameLifeRenderTarget: WebGLRenderTarget;
+    public currentFrameLifeRenderTarget: WebGLRenderTarget;
 
     // shader materials:
     private copyShader: ShaderMaterial;
@@ -48,6 +50,7 @@ export default class OffScreenFbo {
         this.renderer = renderer;
         this.offScreenScene = new Scene();
         this.mesh = new Mesh(new PlaneBufferGeometry(2, 2), this.copyShader);
+        // this.testBoard = new Mesh(new PlaneBufferGeometry(2, 2), this.copyShader);
         this.offScreenScene.add(this.mesh);
 
         var gl = renderer.getContext();
@@ -80,8 +83,12 @@ export default class OffScreenFbo {
         this.lifeShader.uniforms.velocity.value = this.currentFrameVelocityRenderTarget.texture;
 
         this.renderer.setRenderTarget(this.currentFrameLifeRenderTarget);
+        // this.renderer.setRenderTarget(null);
         this.renderer.render(this.offScreenScene, this.camera);
         this.renderer.setRenderTarget(null);
+
+        // this.copy2RenderTarget(this.currentFrameLifeRenderTarget.texture, null);
+        // this.copy2RenderTarget(this.currentFramePosRenderTarget.texture, null);
     }
 
     private updateVelocity(globalState: GlobalState) {
@@ -152,7 +159,7 @@ export default class OffScreenFbo {
             new Float32Array(defaultPositions.length),
             settings.WIDTH,
             settings.HEIGHT,
-            RGBFormat,
+            RGBAFormat,
             FloatType
         )
         velocityTexture.wrapS = ClampToEdgeWrapping;
@@ -190,7 +197,7 @@ export default class OffScreenFbo {
             wrapT: ClampToEdgeWrapping,
             minFilter: NearestFilter,
             magFilter: NearestFilter,
-            format: RGBFormat,
+            format: RGBAFormat,
             type: FloatType,
             depthBuffer: false,
             stencilBuffer: false

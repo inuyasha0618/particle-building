@@ -1,7 +1,8 @@
 #define PHONG
 uniform sampler2D texturePosition;
+uniform sampler2D textureLife;
 varying vec3 vViewPosition;
-
+varying float life;
 #ifndef FLAT_SHADED
 
 	varying vec3 vNormal;
@@ -40,6 +41,7 @@ void main() {
 
 	#include <begin_vertex>
 	transformed = texture2D(texturePosition, position.xy).xyz;
+	life = texture2D(textureLife, position.xy).x;
 
 	#include <morphtarget_vertex>
 	#include <skinning_vertex>

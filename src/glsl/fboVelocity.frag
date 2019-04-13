@@ -54,5 +54,5 @@ void main() {
     isActive *= 1.0 - isDead;
 
     // gl_FragColor = vec4(velocity, isActive);
-    gl_FragColor = vec4(velocity, 0.0);
+    gl_FragColor = vec4(velocity, isActive);
 }
