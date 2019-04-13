@@ -7,7 +7,6 @@ uniform vec3 sphereVelocity;
 uniform float gravity;
 uniform float friction;
 uniform float radius;
-uniform float resetAnimation;
 
 const float EPS = 0.0001;
 #pragma glslify: random = require(glsl-random)
@@ -48,7 +47,6 @@ void main() {
 
     velocity += (repulsive + tagent) * (1.0 + random(vec2(currentPosition.x + currentPosition.y, currentPosition.z)) * 0.3) * isInSphere;
 
-    // velocity *= step(-EPS, -resetAnimation);
     isActive = step(1.0 - EPS, isActive + isInSphere);
     float isDead = step(1.0, currentLife);
     velocity *= 1.0 - isDead;

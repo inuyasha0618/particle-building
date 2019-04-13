@@ -101,8 +101,6 @@ export default class OffScreenFbo {
         this.velocityShader.uniforms.currentPos.value = this.currentFramePosRenderTarget.texture;
         this.velocityShader.uniforms.sphere3dPos.value = spherePos;
         this.velocityShader.uniforms.sphereVelocity.value = sphereVelocity;
-        this.velocityShader.uniforms.resetAnimation.value = globalState.resetAnimation;
-        // this.velocityShader.uniforms.life.value = this.currentFrameLifeRenderTarget.texture;
 
         this.renderer.setRenderTarget(this.currentFrameVelocityRenderTarget);
         this.renderer.render(this.offScreenScene, this.camera);
@@ -110,7 +108,6 @@ export default class OffScreenFbo {
     }
 
     private updatePosition(globalState: GlobalState) {
-        // this.swapRenderTarget(this.lastFramePosRenderTarget, this.currentFramePosRenderTarget);
 
         let tmp: WebGLRenderTarget = this.lastFramePosRenderTarget;
         this.lastFramePosRenderTarget = this.currentFramePosRenderTarget;
@@ -121,14 +118,11 @@ export default class OffScreenFbo {
         this.positionShader.uniforms.lastFramePos.value = this.lastFramePosRenderTarget.texture;
         this.positionShader.uniforms.defaultPos.value = this.defaultPosRenderTarget.texture;
         this.positionShader.uniforms.velocity.value = this.currentFrameVelocityRenderTarget.texture;
-        this.positionShader.uniforms.resetAnimation.value = globalState.resetAnimation;
-        // this.positionShader.uniforms.life.value = this.currentFrameLifeRenderTarget.texture;
 
         this.renderer.setRenderTarget(this.currentFramePosRenderTarget);
         this.renderer.render(this.offScreenScene, this.camera);
         this.renderer.setRenderTarget(null);
 
-        // this.copy2RenderTarget(this.currentFrameVelocityRenderTarget.texture, null);
     }
 
     public initDefaultPositions(defaultPositions: Float32Array) {
@@ -259,7 +253,6 @@ export default class OffScreenFbo {
                 gravity: { value: 0.001 },
                 friction: { value: 0.01 },
                 radius: { value: settings.RADIUS},
-                resetAnimation: {value: undefined},
                 // life: { value: undefined }
             },
             transparent: false,
@@ -275,7 +268,6 @@ export default class OffScreenFbo {
                 lastFramePos: { value: undefined },
                 defaultPos: { value: undefined },
                 velocity: { value: undefined },
-                resetAnimation: {value: undefined},
                 // life: { value: undefined }
             },
             transparent: false,

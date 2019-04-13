@@ -74,7 +74,7 @@ class MainScene {
         this.building = new Building(this.offScreenFbo);
         this.scene.add(this.building.mesh);
         // this.scene.add(this.offScreenFbo.mesh);
-        // this.scene.add(this.building.bodyMesh);
+        this.scene.add(this.building.bodyMesh);
     }
 
     private setSphere() {

@@ -3,7 +3,6 @@ uniform sampler2D lastFramePos;
 uniform sampler2D defaultPos;
 uniform sampler2D velocity;
 
-uniform float resetAnimation;
 
 const float EPS = 0.0001;
 #pragma glslify: random = require(glsl-random)
