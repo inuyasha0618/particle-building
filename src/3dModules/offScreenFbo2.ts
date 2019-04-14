@@ -204,7 +204,7 @@ export default class OffScreenFbo {
         const { WIDTH, HEIGHT } = settings;
         const modelMx: Matrix4 = new Matrix4();
         modelMx.set(3.0, 0.0, 0.0, 0.0,
-                    0.0, 3.0, 0.0, -200.0,
+                    0.0, 3.0, 0.0, -250.0,
                     0.0, 0.0, 3.0, 0.0,
                     0.0, 0.0, 0.0, 1.0);
 

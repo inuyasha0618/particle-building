@@ -60,7 +60,7 @@ export default class Bulding {
             reflectivity: 0.5,
             blending: THREE.NoBlending
         }))
-        this.bodyMesh.matrix.setPosition(new THREE.Vector3(0, -200, 0));
+        this.bodyMesh.matrix.setPosition(new THREE.Vector3(0, -250.0, 0));
         this.bodyMesh.matrix.scale(new THREE.Vector3(3.0, 3.0, 3.0));
         this.bodyMesh.matrixAutoUpdate = false;
     }

@@ -31,8 +31,9 @@ void main() {
     float positionOffset = distance(currentPosition, defaultPosition);
 
     // 计算空气阻力及重力 / 反弹 对速度的影响
-    if (currentPosition.y > -200.0) {
-        velocity += step(EPS, positionOffset) * vec3(0.0, -gravity * ((1.0 - defaultPosition.y * 0.001) + random(defaultPosition.xy)), 0.0);
+    if (currentPosition.y > -250.0) {
+        // velocity += step(EPS, positionOffset) * vec3(0.0, -gravity * ((1.0 - defaultPosition.y * 0.001) + random(defaultPosition.xy)), 0.0);
+        velocity += isActive * vec3(0.0, -gravity * ((1.0 - defaultPosition.y * 0.001) + random(defaultPosition.xy)), 0.0);
         velocity.xz *= 1.0 - friction;
     } else {
         float strength = abs(velocity.y) * 0.2;

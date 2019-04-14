@@ -86,7 +86,7 @@ class MainScene {
             shininess: 12,
             reflectivity: 0.5,
             blending: AdditiveBlending,
-            opacity: 0.6,
+            opacity: 0.3,
         });
 
         const frontMaterial: MeshPhongMaterial = new MeshPhongMaterial({
@@ -96,7 +96,7 @@ class MainScene {
             shininess: 12,
             reflectivity: 0.5,
             blending: AdditiveBlending,
-            opacity: 0.6,
+            opacity: 0.3,
         });
 
         geometry.computeBoundingSphere();
@@ -167,7 +167,7 @@ class MainScene {
     }
 
     private loop() {
-        new RenderLooper(this.renderFrame).start();
+        new RenderLooper(this.renderFrame, 60).start();
     }
 
     private renderFrame() {
