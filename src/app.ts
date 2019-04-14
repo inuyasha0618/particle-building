@@ -166,7 +166,7 @@ class MainScene {
     }
 
     private loop() {
-        new RenderLooper(this.renderFrame).start();
+        new RenderLooper(this.renderFrame, 60).start();
     }
 
     private renderFrame() {
