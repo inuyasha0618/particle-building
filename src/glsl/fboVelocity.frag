@@ -31,7 +31,7 @@ void main() {
     float positionOffset = distance(currentPosition, defaultPosition);
 
     // 计算空气阻力及重力 / 反弹 对速度的影响
-    if (currentPosition.y > -250.0) {
+    if (currentPosition.y > -249.0) {
         // velocity += step(EPS, positionOffset) * vec3(0.0, -gravity * ((1.0 - defaultPosition.y * 0.001) + random(defaultPosition.xy)), 0.0);
         velocity += isActive * vec3(0.0, -gravity * ((1.0 - defaultPosition.y * 0.001) + random(defaultPosition.xy)), 0.0);
         velocity.xz *= 1.0 - friction;
@@ -40,18 +40,18 @@ void main() {
         velocity.y *= -0.4 - random(uv + 2.0) * 0.2;
         velocity.x += (random(currentPosition.xy + strength) - 0.5);
         velocity.z += (random(currentPosition.zy) - 0.5);
-        velocity.xz *= strength;
+        velocity.xz *= strength * 3.0;
     }
 
-    vec3 repulsive = normalize(currentPosition - sphere3dPos) * random(defaultPosition.xy);
-    vec3 tagent = sphereVelocity * 0.08;
+    // vec3 repulsive = normalize(currentPosition - sphere3dPos) * random(defaultPosition.xy);
+    // vec3 tagent = sphereVelocity * 0.08;
 
-    velocity += (repulsive + tagent) * (1.0 + random(vec2(currentPosition.x + currentPosition.y, currentPosition.z)) * 0.3) * isInSphere;
+    // velocity += (repulsive + tagent) * (1.0 + random(vec2(currentPosition.x + currentPosition.y, currentPosition.z)) * 0.3) * isInSphere;
 
-    isActive = step(1.0 - EPS, isActive + isInSphere);
-    float isDead = step(1.0, currentLife);
-    velocity *= 1.0 - isDead;
-    isActive *= 1.0 - isDead;
+    // isActive = step(1.0 - EPS, isActive + isInSphere);
+    // float isDead = step(1.0, currentLife);
+    // velocity *= 1.0 - isDead;
+    // isActive *= 1.0 - isDead;
 
     gl_FragColor = vec4(velocity, isActive);
 }

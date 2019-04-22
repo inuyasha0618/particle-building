@@ -43,7 +43,7 @@ class MainScene {
         this.globalState = this.initializeGlobalState();
         this.scene = new Scene();
         this.setBuilding();
-        this.setSphere();
+        // this.setSphere();
         this.setLights();
         this.setCamera();
         this.ray = new Ray();
@@ -171,7 +171,7 @@ class MainScene {
     }
 
     private renderFrame() {
-        this.updateSpherePos();
+        // this.updateSpherePos();
         // this.updateResetTimer();
         // this.updateResetRate();
         this.offScreenFbo.update(this.globalState);

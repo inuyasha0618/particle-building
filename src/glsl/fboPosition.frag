@@ -22,6 +22,6 @@ void main() {
 
     lastLife = mix(lastLife + 0.005 * (0.3 + 0.7 * random(uv)) * isActive, 0.0, step(1.0, lastLife));
     position.y = mix(-250.0, position.y, step(-250.0, position.y));
-    position = mix(position, defaultPosition, step(1.0, lastLife));
+    // position = mix(position, defaultPosition, step(1.0, lastLife));
     gl_FragColor = vec4(position, lastLife);
 }

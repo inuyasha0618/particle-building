@@ -44,6 +44,7 @@ export default class OffScreenFbo {
     private positionShader: ShaderMaterial;
     private lifeShader: ShaderMaterial;
     private initPositionShader: ShaderMaterial;
+    private setActiveShader: ShaderMaterial;
 
     constructor(renderer: WebGLRenderer) {
         this.initRenderTargets();
@@ -63,26 +64,23 @@ export default class OffScreenFbo {
             alert( 'No OES_texture_float support for float textures!' );
             return;
         }
+
+        document.addEventListener('keydown', e => {
+            if (e.keyCode == 32) {
+                this.setActive();
+            }
+        })
     }
 
     public update(globalState: GlobalState) {
-        // this.updateLife();
         this.updateVelocity(globalState);
         this.updatePosition(globalState);
     }
 
-    private updateLife() {
-        this.mesh.material = this.lifeShader;
+    private setActive() {
+        this.mesh.material = this.setActiveShader;
 
-        let tmp: WebGLRenderTarget = this.lastFrameLifeRenderTarget;
-        this.lastFrameLifeRenderTarget = this.currentFrameLifeRenderTarget;
-        this.currentFrameLifeRenderTarget = tmp;
-
-        this.lifeShader.uniforms.lastFrameLife.value = this.lastFrameLifeRenderTarget.texture;
-
-        this.lifeShader.uniforms.velocity.value = this.currentFrameVelocityRenderTarget.texture;
-
-        this.renderer.setRenderTarget(this.currentFrameLifeRenderTarget);
+        this.renderer.setRenderTarget(this.currentFrameVelocityRenderTarget);
         this.renderer.render(this.offScreenScene, this.camera);
         this.renderer.setRenderTarget(null);
     }
@@ -227,18 +225,10 @@ export default class OffScreenFbo {
             }
         });
 
-        // this.lifeShader = new ShaderMaterial({
-        //     vertexShader: glsl.file('../glsl/fbo.vert'),
-        //     fragmentShader: glsl.file('../glsl/fboLife.frag'),
-        //     uniforms: {
-        //         resolution: { value: new Vector2(WIDTH, HEIGHT) },
-        //         lastFrameLife: { value: undefined },
-        //         velocity: { value: undefined },
-        //     },
-        //     transparent: false,
-        //     depthWrite: false,
-        //     depthTest: false
-        // });
+        this.setActiveShader = new ShaderMaterial({
+            vertexShader: glsl.file('../glsl/fbo.vert'),
+            fragmentShader: glsl.file('../glsl/setActive.frag'),
+        });
 
         this.velocityShader = new ShaderMaterial({
             vertexShader: glsl.file('../glsl/fbo.vert'),
@@ -250,7 +240,7 @@ export default class OffScreenFbo {
                 currentPos: { value: undefined },
                 sphere3dPos: { value: undefined},
                 sphereVelocity: { value: undefined },
-                gravity: { value: 0.001 },
+                gravity: { value: 0.15 },
                 friction: { value: 0.01 },
                 radius: { value: settings.RADIUS},
                 // life: { value: undefined }
