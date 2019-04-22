@@ -7,6 +7,7 @@ import {
     Mesh,
     MeshPhongMaterial
 } from 'three';
+import getDDSLoader from '../libs/getDDSLoader';
 import OffScreenFbo from './offScreenFbo2';
 import settings from '../settings';
 import { BufferGeometryUtils } from '../libs/BufferGeometeryUtils';
@@ -16,6 +17,8 @@ var glsl = require('glslify')
 var OBJLoader = require('three-obj-loader');
 OBJLoader(THREE);
 const loader = new THREE.OBJLoader();
+
+getDDSLoader(THREE);
 export default class Bulding {
     private offSceenFbo: OffScreenFbo;
     mesh: Points;
@@ -48,6 +51,14 @@ export default class Bulding {
         newPointMaterial.vertexShader = glsl.file('../glsl/meshphong.vert');
         newPointMaterial.fragmentShader = glsl.file('../glsl/meshphong.frag');
 
+        var diffuseMap = (new THREE.TextureLoader()).load('../../images/spiderman.jpg');
+        diffuseMap.minFilter = diffuseMap.magFilter = THREE.LinearFilter;
+		// diffuseMap.anisotropy = 4;
+        diffuseMap.wrapS = diffuseMap.wrapT = THREE.ClampToEdgeWrapping;
+        diffuseMap.format = THREE.RGBFormat;
+
+        newPointMaterial.map = diffuseMap;
+
         return newPointMaterial;
     }
 
@@ -73,11 +84,12 @@ export default class Bulding {
         const normals: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 3);
         const uvs: Float32Array = new Float32Array(PARTICLE_AMOUNTS * 2);
         // loader.load('../../models/o.obj', (object) => {
-        loader.load('../../models/male02.obj', (object) => {
+        // loader.load('../../models/male02.obj', (object) => {
+        loader.load('../../models/spiderman.obj', (object) => {
             totalBufferGeometry = BufferGeometryUtils.mergeBufferGeometries(object.children.map(child => child.geometry), false);
             const originalPositions = totalBufferGeometry.attributes.position.array;
             const originalNormals = totalBufferGeometry.attributes.normal.array;
-            // const originalUvs = totalBufferGeometry.attributes.uv.array;
+            const originalUvs = totalBufferGeometry.attributes.uv.array;
             const originalPtsCnts = totalBufferGeometry.attributes.position.count;
             // const remainder = PARTICLE_AMOUNTS - originalPtsCnts;
             const remainder = PARTICLE_AMOUNTS;
@@ -87,6 +99,7 @@ export default class Bulding {
             this.computeBoundingBox(totalBufferGeometry);
             // vertices.set(originalPositions);
             // normals.set(originalNormals);
+            // uvs.set(originalUvs);
             for (let i = 0, len = result.length; i < len; ++i) {
                 const { position, normal, uv }  = result[i];
                 vertices[3 * pointIndex] = position.x;
@@ -97,9 +110,9 @@ export default class Bulding {
                 normals[3 * pointIndex + 1] = normal.y;
                 normals[3 * pointIndex + 2] = normal.z;
 
+                uvs[2 * pointIndex] = uv.x;
+                uvs[2 * pointIndex + 1] = uv.y;
                 pointIndex++;
-                // uvs[2 * pointIndex] = uv.x;
-                // uvs[2 * pointIndex + 1] = uv.y;
             }
             const position = new Float32Array(PARTICLE_AMOUNTS * 3);
 
@@ -113,7 +126,7 @@ export default class Bulding {
 
             (<THREE.BufferGeometry>this.mesh.geometry).addAttribute('position', new THREE.BufferAttribute(position, 3, false));
             (<THREE.BufferGeometry>this.mesh.geometry).addAttribute('normal', normalBufferAttribute);
-            // pointGeometry.addAttribute('uv', new THREE.BufferAttribute(uvs, 2, false));
+            (<THREE.BufferGeometry>this.mesh.geometry).addAttribute('uv', new THREE.BufferAttribute(uvs, 2, false));
 
             this.offSceenFbo.initDefaultPositions(vertices);
             this.mesh.material.uniforms.texturePosition.value = this.offSceenFbo.currentFramePosRenderTarget.texture;

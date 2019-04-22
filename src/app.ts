@@ -160,7 +160,7 @@ class MainScene {
 
     private setCamera() {
         const { width, height } = this.renderer.domElement.getBoundingClientRect();
-        this.camera = new PerspectiveCamera(75, width / height, 100, 2000);
+        this.camera = new PerspectiveCamera(75, width / height, 50, 2000);
         this.camera.position.set(0, 50, 500);
         this.camera.lookAt(new Vector3(0, 50, 0));
         const controls = new OrbitControls(this.camera, this.renderer.domElement);

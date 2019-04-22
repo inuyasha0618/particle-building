@@ -201,9 +201,13 @@ export default class OffScreenFbo {
     private initShaderMaterials() {
         const { WIDTH, HEIGHT } = settings;
         const modelMx: Matrix4 = new Matrix4();
-        modelMx.set(3.0, 0.0, 0.0, 0.0,
+        // modelMx.set(3.0, 0.0, 0.0, 0.0,
+        //             0.0, 3.0, 0.0, -250.0,
+        //             0.0, 0.0, 3.0, 0.0,
+        //             0.0, 0.0, 0.0, 1.0);
+        modelMx.set(-3.0, 0.0, 0.0, 0.0,
                     0.0, 3.0, 0.0, -250.0,
-                    0.0, 0.0, 3.0, 0.0,
+                    0.0, 0.0, -3.0, 0.0,
                     0.0, 0.0, 0.0, 1.0);
 
         this.initPositionShader = new ShaderMaterial({

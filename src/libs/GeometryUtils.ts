@@ -60,7 +60,7 @@ const GeometryUtils = {
 	randomPointInTriangle: function () {
 
 
-		return function ( posA, posB, posC, normalA, normalB, normalC ) {
+		return function ( posA, posB, posC, normalA, normalB, normalC, uvA, uvB, uvC ) {
 
 			var a = Math.random();
 			var b = Math.random();
@@ -77,6 +77,7 @@ const GeometryUtils = {
 			return {
 				position: GeometryUtils.calcuPtsByWeightCoord(posA, posB, posC, a, b, c),
 				normal: GeometryUtils.calcuPtsByWeightCoord(normalA, normalB, normalC, a, b, c),
+				uv: GeometryUtils.calcuPtsByWeightCoord(uvA, uvB, uvC, a, b, c),
 			}
 
 		};
@@ -101,127 +102,12 @@ const GeometryUtils = {
 		return result;
 	},
 
-	// Get random point in face (triangle)
-	// (uniform distribution)
-
-	randomPointInFace: function ( face, geometry ) {
-
-		var vA, vB, vC;
-
-		vA = geometry.vertices[ face.a ];
-		vB = geometry.vertices[ face.b ];
-		vC = geometry.vertices[ face.c ];
-
-		return GeometryUtils.randomPointInTriangle( vA, vB, vC );
-
-	},
-
-	// Get uniformly distributed random points in mesh
-	// 	- create array with cumulative sums of face areas
-	//  - pick random number from 0 to total area
-	//  - find corresponding place in area array by binary search
-	//	- get random point in face
-
-	randomPointsInGeometry: function ( geometry, n ) {
-
-		var face, i,
-			faces = geometry.faces,
-			vertices = geometry.vertices,
-			il = faces.length,
-			totalArea = 0,
-			cumulativeAreas = [],
-			vA, vB, vC;
-
-		// precompute face areas
-
-		for ( i = 0; i < il; i ++ ) {
-
-			face = faces[ i ];
-
-			vA = vertices[ face.a ];
-			vB = vertices[ face.b ];
-			vC = vertices[ face.c ];
-
-			face._area = GeometryUtils.triangleArea( vA, vB, vC );
-
-			totalArea += face._area;
-
-			cumulativeAreas[ i ] = totalArea;
-
-		}
-
-		// binary search cumulative areas array
-
-		function binarySearchIndices( value ) {
-
-			function binarySearch( start, end ) {
-
-				// return closest larger index
-				// if exact number is not found
-
-				if ( end < start )
-					return start;
-
-				var mid = start + Math.floor( ( end - start ) / 2 );
-
-				if ( cumulativeAreas[ mid ] > value ) {
-
-					return binarySearch( start, mid - 1 );
-
-				} else if ( cumulativeAreas[ mid ] < value ) {
-
-					return binarySearch( mid + 1, end );
-
-				} else {
-
-					return mid;
-
-				}
-
-			}
-
-			var result = binarySearch( 0, cumulativeAreas.length - 1 );
-			return result;
-
-		}
-
-		// pick random face weighted by face area
-
-		var r, index,
-			result = [];
-
-		var stats = {};
-
-		for ( i = 0; i < n; i ++ ) {
-
-			r = Math.random() * totalArea;
-
-			index = binarySearchIndices( r );
-
-			result[ i ] = GeometryUtils.randomPointInFace( faces[ index ], geometry );
-
-			if ( ! stats[ index ] ) {
-
-				stats[ index ] = 1;
-
-			} else {
-
-				stats[ index ] += 1;
-
-			}
-
-		}
-
-		return result;
-
-	},
-
 	randomPointsInBufferGeometry: function ( geometry, n ) {
 
 		var i,
 			vertices = geometry.attributes.position.array,
 			normals = geometry.attributes.normal.array,
-			// uvs = geometry.attributes.uv.array,
+			uvs = geometry.attributes.uv.array,
 			totalArea = 0,
 			cumulativeAreas = [],
 			vA, vB, vC,
@@ -309,12 +195,12 @@ const GeometryUtils = {
 			normalB.set( normals[ index * 9 + 3 ], normals[ index * 9 + 4 ], normals[ index * 9 + 5 ] );
 			normalC.set( normals[ index * 9 + 6 ], normals[ index * 9 + 7 ], normals[ index * 9 + 8 ] );
 
-			// uvA.set( uvs[ index * 6 + 0 ], uvs[ index * 6 + 1 ] );
-			// uvB.set( uvs[ index * 6 + 2 ], uvs[ index * 6 + 3 ] );
-			// uvC.set( uvs[ index * 6 + 4 ], uvs[ index * 6 + 5 ] );
+			uvA.set( uvs[ index * 6 + 0 ], uvs[ index * 6 + 1 ] );
+			uvB.set( uvs[ index * 6 + 2 ], uvs[ index * 6 + 3 ] );
+			uvC.set( uvs[ index * 6 + 4 ], uvs[ index * 6 + 5 ] );
 
-			// result[ i ] = GeometryUtils.randomPointInTriangle( vA, vB, vC, normalA, normalB, normalC, uvA, uvB, uvC );
-			result[ i ] = GeometryUtils.randomPointInTriangle( vA, vB, vC, normalA, normalB, normalC );
+			result[ i ] = GeometryUtils.randomPointInTriangle( vA, vB, vC, normalA, normalB, normalC, uvA, uvB, uvC );
+			// result[ i ] = GeometryUtils.randomPointInTriangle( vA, vB, vC, normalA, normalB, normalC );
 
 		}
 
